@@ -1,21 +1,21 @@
 import { PrismaClient } from '@prisma/client'
 import * as dotenv from 'dotenv'
+import * as fs from 'fs'
 
+var colors = require('colors')
 dotenv.config()
 const prisma = new PrismaClient()
 const createSongs = async (startIndex: number, quantity: number) => {
-	const songs = []
 	for (let i = startIndex; i < quantity; i++) {
 		setTimeout(() => {
 			fetch(`https://api.deezer.com/track/${i}`).then(async res => {
 				res.json().then(async dezzer => {
 					if (dezzer.error) {
-						return console.warn(
-							dezzer.error.code === 800
-								? 'Not found drezzer'
-								: dezzer.error.message
-						)
+						return dezzer.error.code === 800
+							? null
+							: console.warn(dezzer.error.message)
 					}
+
 					fetch(
 						`https://soundcloud-downloader4.p.rapidapi.com/soundcloud/search?query=${dezzer.title}`,
 						{
@@ -29,7 +29,11 @@ const createSongs = async (startIndex: number, quantity: number) => {
 						.then(async res => {
 							res.json().then(async search => {
 								if (!search.result)
-									return console.warn('Not found in soundcloud search' + i)
+									return console.warn(
+										colors.bgRed(
+											`Not found in soundcloud search ${i} | ${dezzer.title}`
+										)
+									)
 								const CurrentSong = search.result.find(
 									songs =>
 										songs.title.includes(dezzer.title) &&
@@ -37,7 +41,11 @@ const createSongs = async (startIndex: number, quantity: number) => {
 										songs.duration < dezzer.duration * 1000 + 1000
 								)
 								if (!CurrentSong)
-									return console.warn('Not found in found current song ' + i)
+									return console.log(
+										colors.bgRed(
+											`Not found in current song  ${i} | ${dezzer.title}`
+										)
+									)
 								fetch(
 									`https://soundcloud-downloader4.p.rapidapi.com/soundcloud/track?url=${CurrentSong.url}`,
 									{
@@ -61,7 +69,24 @@ const createSongs = async (startIndex: number, quantity: number) => {
 												!dezzer.release_date ||
 												!song.music.genres
 											)
-												return console.warn('Not found in download song' + i)
+												return console.log(
+													colors.bgRed(
+														`Not found in download song ${i} | ${dezzer.title}`
+													)
+												)
+											if (!fs.existsSync('./uploads/songs'))
+												fs.mkdirSync('./uploads/songs')
+											const file = fs.createWriteStream(
+												`./uploads/songs/${dezzer.title}.mp3`
+											)
+
+											await fetch(song.music.download_url).then(res => {
+												res.arrayBuffer().then(buffer => {
+													file.write(Buffer.from(buffer))
+													file.end()
+												})
+											})
+
 											const newSong = await prisma.song.create({
 												include: {
 													Genre: true
@@ -83,22 +108,21 @@ const createSongs = async (startIndex: number, quantity: number) => {
 													coverBig: dezzer.album.cover_big,
 													coverMedium: dezzer.album.cover_medium,
 													coverSmall: dezzer.album.cover_small,
-													mp3Path: song.music.download_url
+													mp3Path: `./uploads/songs/${dezzer.title}.mp3`
 												}
 											})
-											songs.push(newSong)
-											console.warn(
-												`Created song ${i}, ${song.music.download_url}`
+											console.log(
+												colors.bgGreen(`Created song ${i} | ${dezzer.title}`)
 											)
 										})
 										.catch(e => {
-											console.log(e)
+											console.log(colors.bgRed(e))
 										})
 								})
 							})
 						})
 						.catch(e => {
-							console.log(e)
+							console.log(colors.bgRed(e))
 						})
 				})
 			})
@@ -107,8 +131,8 @@ const createSongs = async (startIndex: number, quantity: number) => {
 }
 
 async function main() {
-	console.log('Start seeding...')
-	await createSongs(50100, 50400)
+	console.log(colors.bgCyan('Start seeding...'))
+	await createSongs(80000, 80100)
 }
 
 main()
