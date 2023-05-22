@@ -1,5 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,78 +8,73 @@ datasource db {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  email      String   @unique
+  id         Int        @id @default(autoincrement())
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  email      String     @unique
   name       String?
-  avatarPath String   @default("/assets/noAvatar.png") @map("avatar_path")
+  avatarPath String     @default("/assets/noAvatar.png") @map("avatar_path")
   password   String
+  playlists  Playlist[]
 }
 
 model Song {
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  title       String
-  coverBig    String   @map("cover_big")
-  coverMedium String   @map("cover_medium")
-  coverSmall  String   @map("cover_small")
+  id          Int        @id @default(autoincrement())
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  title       String     @unique
+  coverBig    String     @map("cover_big")
+  coverMedium String     @map("cover_medium")
+  coverSmall  String     @map("cover_small")
   duration    Int
-  releaseDate DateTime @map("release_date")
-  mp3Path     String   @map("mp3_path")
-
-  Artist     Artist?   @relation(fields: [artistId], references: [id])
-  artistId   Int?
-  Genre      Genre?    @relation(fields: [genreId], references: [id])
-  genreId    Int?
-  Album      Album?    @relation(fields: [albumId], references: [id])
-  albumId    Int?
-  Playlist   Playlist? @relation(fields: [playlistId], references: [id])
-  playlistId Int?
-}
-
-model Artist {
-  id            Int      @id @default(autoincrement())
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  name          String
-  followers     Int
-  pictureBig    String   @map("picture_big")
-  pictureMedium String   @map("picture_medium")
-  pictureSmall  String   @map("picture_small")
-
-  songs Song[]
-  Album Album[]
+  releaseDate DateTime   @map("release_date")
+  mp3Path     String     @map("mp3_path")
+  albums      Album[]
+  artists     Artist[]
+  genres      Genre[]
+  playlists   Playlist[]
 }
 
 model Album {
   id          Int      @id @default(autoincrement())
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  title       String
+  title       String   @unique
   coverBig    String   @map("cover_big")
   coverMedium String   @map("cover_medium")
   coverSmall  String   @map("cover_small")
   fans        Int
   releaseDate DateTime @map("release_date")
+  artist      Artist[]
+  genres      Genre[]
+  songs       Song[]
+}
 
-  artist   Artist @relation(fields: [artistId], references: [id])
-  artistId Int
-  songs    Song[]
+model Artist {
+  id            Int      @id @default(autoincrement())
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  name          String   @unique
+  followers     Int
+  pictureBig    String   @map("picture_big")
+  pictureMedium String   @map("picture_medium")
+  pictureSmall  String   @map("picture_small")
+  albums        Album[]
+  songs         Song[]
 }
 
 model Playlist {
   id          Int      @id @default(autoincrement())
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  title       String
+  title       String   @unique
   coverBig    String   @map("cover_big")
   coverMedium String   @map("cover_medium")
   coverSmall  String   @map("cover_small")
   fans        Int
-
   releaseDate DateTime @map("release_date")
+  userId      Int?
+  User        User?    @relation(fields: [userId], references: [id])
   songs       Song[]
 }
 
@@ -90,6 +83,6 @@ model Genre {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   name      String   @unique
-
-  songs Song[]
+  albums    Album[]
+  songs     Song[]
 }
