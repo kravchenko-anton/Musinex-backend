@@ -44,14 +44,24 @@ const createSongs = async (startIndex: number, quantity: number) => {
 
 				const currentSong = search.result.find(
 					(song: any) =>
-						(song.title.includes(
-							deezer.title_short ? deezer.title_short : deezer.title
-						) ||
-							(deezer.title_short ? deezer.title_short : deezer.title).includes(
-								song.title
-							)) &&
+						(song.title
+							.trim()
+							.toLowerCase()
+							.replace(/[^\w\s-]/g, '')
+							.replace(/[\s_-]+/g, ' ')
+							.replace(/^-+|-+$/g, '')
+							.includes(
+								deezer.title_short ? deezer.title_short : deezer.title
+							) ||
+							(deezer.title_short ? deezer.title_short : deezer.title)
+								.trim()
+								.toLowerCase()
+								.replace(/[^\w\s-]/g, '')
+								.replace(/[\s_-]+/g, ' ')
+								.replace(/^-+|-+$/g, '')
+								.includes(song.title)) &&
 						song.duration > 30000 &&
-						song.duration < deezer.duration * 1000 + 5000
+						song.duration < deezer.duration * 1000 + 30000
 				)
 
 				if (!currentSong) {
@@ -106,8 +116,6 @@ const createSongs = async (startIndex: number, quantity: number) => {
 					)
 				}
 
-				fs.mkdirSync(`./uploads/songs/${deezer.title}.mp3`)
-
 				const file = fs.createWriteStream(`./uploads/songs/${deezer.title}.mp3`)
 				const downloadResponse = await fetch(song.music.download_url)
 				const buffer = await downloadResponse.arrayBuffer()
@@ -126,9 +134,33 @@ const createSongs = async (startIndex: number, quantity: number) => {
 				const Album = albumSearchResult.data.find(
 					(album: any) =>
 						deezer.album.title
-							.toUpperCase()
-							.includes(album.title.toUpperCase()) ||
-						album.title.toUpperCase().includes(deezer.album.title.toUpperCase())
+							.trim()
+							.toLowerCase()
+							.replace(/[^\w\s-]/g, '')
+							.replace(/[\s_-]+/g, ' ')
+							.replace(/^-+|-+$/g, '')
+							.includes(
+								album.title
+									.trim()
+									.toLowerCase()
+									.replace(/[^\w\s-]/g, '')
+									.replace(/[\s_-]+/g, ' ')
+									.replace(/^-+|-+$/g, '')
+							) ||
+						album.title
+							.trim()
+							.toLowerCase()
+							.replace(/[^\w\s-]/g, '')
+							.replace(/[\s_-]+/g, ' ')
+							.replace(/^-+|-+$/g, '')
+							.includes(
+								deezer.album.title
+									.trim()
+									.toLowerCase()
+									.replace(/[^\w\s-]/g, '')
+									.replace(/[\s_-]+/g, ' ')
+									.replace(/^-+|-+$/g, '')
+							)
 				)
 
 				if (!Album) {
@@ -242,7 +274,16 @@ const createSongs = async (startIndex: number, quantity: number) => {
 
 async function main() {
 	console.log(colors.bgCyan('Start seeding...'))
-	await createSongs(830000, 9000000)
+	// await createSongs(831000, 839100)
+
+	console.log(
+		'This Bitter Earth (2002 Mix)'
+			.trim()
+			.toLowerCase()
+			.replace(/[^\w\s-]/g, '')
+			.replace(/[\s_-]+/g, ' ')
+			.replace(/^-+|-+$/g, '')
+	)
 }
 
 main()
