@@ -5,23 +5,30 @@ import * as fs from 'fs'
 var colors = require('colors')
 dotenv.config()
 const prisma = new PrismaClient()
+
 const createSongs = async (startIndex: number, quantity: number) => {
 	for (let i = startIndex; i < quantity; i++) {
 		setTimeout(async () => {
 			try {
-				const deezerResponse = await fetch(`https://api.deezer.com/track/${i}`)
-				const deezer = await deezerResponse.json()
+				const deezer = await fetch(
+					`https://api.deezer.com/editorial/${i}/charts?limit=1000`
+				).then(res => res.json())
 
 				if (deezer.error) {
 					if (deezer.error.code === 800) {
-						return null // Skip to the next iteration if there's an error code 800
+						return null
 					} else {
-						console.warn(deezer.error.message) // Log the error message
+						await new Promise(resolve =>
+							setTimeout(resolve, 10000 * 10000)
+						).then(() => console.log(colors.bgYellow(`Pause for 1000 seconds`)))
+						console.warn(deezer.error.message)
 					}
 				}
 
-				const soundcloudResponse = await fetch(
-					`https://soundcloud-downloader4.p.rapidapi.com/soundcloud/search?query=${deezer.title}`,
+				const search = await fetch(
+					`https://soundcloud-downloader4.p.rapidapi.com/soundcloud/search?query=${
+						deezer.title_short ? deezer.title_short : deezer.title
+					}`,
 					{
 						headers: {
 							'X-RapidAPI-Key':
@@ -29,14 +36,15 @@ const createSongs = async (startIndex: number, quantity: number) => {
 							'X-RapidAPI-Host': 'soundcloud-downloader4.p.rapidapi.com'
 						}
 					}
-				)
-				const search = await soundcloudResponse.json()
+				).then(res => res.json())
 				if (!search.result) {
 					console.warn(
 						colors.bgRed(
 							search.message
 								? search.message
-								: `Not found in SoundCloud search ${i} | ${deezer.title}`
+								: `Not found in SoundCloud search ${i} | ${
+										deezer.title_short ? deezer.title_short : deezer.title
+								  } | ${deezer.duration} sek`
 						)
 					)
 					return
@@ -45,21 +53,22 @@ const createSongs = async (startIndex: number, quantity: number) => {
 				const currentSong = search.result.find(
 					(song: any) =>
 						(song.title
-							.trim()
 							.toLowerCase()
-							.replace(/[^\w\s-]/g, '')
-							.replace(/[\s_-]+/g, ' ')
-							.replace(/^-+|-+$/g, '')
+							.replace(/ *\([^)]*\) */g, '')
+							.replace(/ *\[[^\]]*]/, '')
 							.includes(
 								deezer.title_short ? deezer.title_short : deezer.title
 							) ||
 							(deezer.title_short ? deezer.title_short : deezer.title)
-								.trim()
 								.toLowerCase()
-								.replace(/[^\w\s-]/g, '')
-								.replace(/[\s_-]+/g, ' ')
-								.replace(/^-+|-+$/g, '')
-								.includes(song.title)) &&
+								.replace(/ *\([^)]*\) */g, '')
+								.replace(/ *\[[^\]]*]/, '')
+								.includes(
+									song.title
+										.toLowerCase()
+										.replace(/ *\([^)]*\) */g, '')
+										.replace(/ *\[[^\]]*]/, '')
+								)) &&
 						song.duration > 30000 &&
 						song.duration < deezer.duration * 1000 + 30000
 				)
@@ -67,12 +76,19 @@ const createSongs = async (startIndex: number, quantity: number) => {
 				if (!currentSong) {
 					return console.log(
 						colors.bgRed(
-							`Not found in current song ${i} | ${deezer.title} | ${deezer.duration} sek`
+							`Not found in current song ${i} | ${
+								deezer.title_short
+									? deezer.title_short
+									: deezer.title
+											.toLowerCase()
+											.replace(/ *\([^)]*\) */g, '')
+											.replace(/ *\[[^\]]*]/, '')
+							} | ${deezer.duration} sek`
 						)
 					)
 				}
 
-				const soundcloudTrackResponse = await fetch(
+				const song = await fetch(
 					`https://soundcloud-downloader4.p.rapidapi.com/soundcloud/track?url=${currentSong.url}`,
 					{
 						headers: {
@@ -81,8 +97,7 @@ const createSongs = async (startIndex: number, quantity: number) => {
 							'X-RapidAPI-Host': 'soundcloud-downloader4.p.rapidapi.com'
 						}
 					}
-				)
-				const song = await soundcloudTrackResponse.json()
+				).then(res => res.json())
 
 				if (
 					!song ||
@@ -116,50 +131,41 @@ const createSongs = async (startIndex: number, quantity: number) => {
 					)
 				}
 
-				const file = fs.createWriteStream(`./uploads/songs/${deezer.title}.mp3`)
-				const downloadResponse = await fetch(song.music.download_url)
+				const file = fs.createWriteStream(`./uploads/songs/${i}.mp3`)
+				const downloadResponse = await fetch(song.music.download_url, {})
 				const buffer = await downloadResponse.arrayBuffer()
 				file.write(Buffer.from(buffer))
 				file.end()
 
-				const artistResponse = await fetch(
+				const artist = await fetch(
 					'https://api.deezer.com/artist/' + deezer.artist.id
-				)
-				const artist = await artistResponse.json()
+				).then(res => res.json())
 
-				const albumResponse = await fetch(
+				const albumSearchResult = await fetch(
 					'https://api.deezer.com/search/album?q=' + deezer.album.title
-				)
-				const albumSearchResult = await albumResponse.json()
+				).then(res => res.json())
+
 				const Album = albumSearchResult.data.find(
 					(album: any) =>
 						deezer.album.title
-							.trim()
 							.toLowerCase()
-							.replace(/[^\w\s-]/g, '')
-							.replace(/[\s_-]+/g, ' ')
-							.replace(/^-+|-+$/g, '')
+							.replace(/ *\([^)]*\) */g, '')
+							.replace(/ *\[[^\]]*]/, '')
 							.includes(
 								album.title
-									.trim()
 									.toLowerCase()
-									.replace(/[^\w\s-]/g, '')
-									.replace(/[\s_-]+/g, ' ')
-									.replace(/^-+|-+$/g, '')
+									.replace(/ *\([^)]*\) */g, '')
+									.replace(/ *\[[^\]]*]/, '')
 							) ||
 						album.title
-							.trim()
 							.toLowerCase()
-							.replace(/[^\w\s-]/g, '')
-							.replace(/[\s_-]+/g, ' ')
-							.replace(/^-+|-+$/g, '')
+							.replace(/ *\([^)]*\) */g, '')
+							.replace(/ *\[[^\]]*]/, '')
 							.includes(
 								deezer.album.title
-									.trim()
 									.toLowerCase()
-									.replace(/[^\w\s-]/g, '')
-									.replace(/[\s_-]+/g, ' ')
-									.replace(/^-+|-+$/g, '')
+									.replace(/ *\([^)]*\) */g, '')
+									.replace(/ *\[[^\]]*]/, '')
 							)
 				)
 
@@ -172,10 +178,9 @@ const createSongs = async (startIndex: number, quantity: number) => {
 					return
 				}
 
-				const albumResponse2 = await fetch(
+				const album = await fetch(
 					'https://api.deezer.com/album/' + Album.id
-				)
-				const album = await albumResponse2.json()
+				).then(res => res.json())
 
 				if (!album || album.error) {
 					console.log(colors.bgRed(`Album has an error ${i} | ${deezer.title}`))
@@ -266,24 +271,15 @@ const createSongs = async (startIndex: number, quantity: number) => {
 
 				console.log(colors.bgGreen(`Created song ${i} | ${deezer.title}`))
 			} catch (e) {
-				console.log(colors.bgRed(e))
+				console.log(colors.red(e))
 			}
-		}, (i - startIndex) * 600)
+		}, (i - startIndex) * 2000)
 	}
 }
 
 async function main() {
 	console.log(colors.bgCyan('Start seeding...'))
-	// await createSongs(831000, 839100)
-
-	console.log(
-		'This Bitter Earth (2002 Mix)'
-			.trim()
-			.toLowerCase()
-			.replace(/[^\w\s-]/g, '')
-			.replace(/[\s_-]+/g, ' ')
-			.replace(/^-+|-+$/g, '')
-	)
+	await createSongs(3135556, 3235556)
 }
 
 main()
