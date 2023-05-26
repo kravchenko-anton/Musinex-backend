@@ -9,7 +9,7 @@ export class ArtistService {
   getArtistById(id: number) {
     const artist = this.prisma.artist.findUnique({
       where: {
-        id: id
+        id: +id
       }
     });
     if (!artist) throw new Error("Artist not found");

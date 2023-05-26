@@ -9,7 +9,7 @@ export class PlaylistService {
   getPlaylistById(id: number) {
     const playlist = this.prisma.playlist.findUnique({
       where: {
-        id
+        id: +id
       }
     });
     

@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode } from "@nestjs/common";
+import { Controller, Get, HttpCode, Param } from "@nestjs/common";
 import { ArtistService } from "./artist.service";
 
 @Controller("artist")
@@ -7,8 +7,8 @@ export class ArtistController {
   }
   
   @HttpCode(200)
-  @Get(":id")
-  async getArtistById(id: number) {
+  @Get("/:id")
+  async getArtistById(@Param("id") id: number) {
     return this.artistService.getArtistById(id);
   }
   
