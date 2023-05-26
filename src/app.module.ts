@@ -9,11 +9,10 @@ import { GenreModule } from "./genre/genre.module";
 import { PlaylistModule } from "./playlist/playlist.module";
 import { PrismaService } from "./prisma.service";
 import { SearchModule } from "./search/search.module";
-import { StatisticsModule } from "./statistics/statistics.module";
 import { UsersModule } from "./users/users.module";
 
 @Module({
-  imports: [ConfigModule.forRoot(), UsersModule, AuthModule, PlaylistModule, AlbumModule, ArtistModule, GenreModule, SearchModule, StatisticsModule],
+  imports: [ConfigModule.forRoot(), UsersModule, AuthModule, PlaylistModule, AlbumModule, ArtistModule, GenreModule, SearchModule],
   controllers: [AppController],
   providers: [AppService, PrismaService]
 })

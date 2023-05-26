@@ -6,12 +6,15 @@ export class SearchController {
   constructor(private readonly searchService: SearchService) {
   }
   
+  @Get("/catalog")
+  async getCatalog() {
+    return this.searchService.getCatalog();
+  }
   
-  // global search
-  @Get(":query")
+  @Get("/:query")
   async search(@Param("query") query: string) {
     return this.searchService.search(query);
   }
   
-  // get Recommendations page
+  
 }
