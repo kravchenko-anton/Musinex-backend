@@ -38,16 +38,15 @@ export class UsersService {
     const user = await this.getById(userId, {
       password: false
     });
-    this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: {
         email: dto.email ? dto.email : user.email,
         password: dto.password ? await hash(dto.password) : user.password,
-        avatarPath: dto.avatarPath ? dto.avatarPath : user.avatarPath,
         name: dto.name ? dto.name : user.name
       }
     });
-    return user;
+    return this.getById(userId);
   }
   
   async toggleFavorite(userId: number, id: number, type: varieties) {

@@ -158,7 +158,6 @@ const createPlaylistFromPopular = async (startIndex: number = 0) => {
                 create: {
                   name: "Deezer",
                   email: "dreezer@gmail.com",
-                  avatarPath: "./assets/deezer.png",
                   password: "12345678"
                 }
               }

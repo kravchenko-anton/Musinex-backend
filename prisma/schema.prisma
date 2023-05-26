@@ -13,7 +13,6 @@ model User {
   updatedAt         DateTime   @updatedAt @map("updated_at")
   email             String     @unique
   name              String?
-  avatarPath        String     @default("/assets/noAvatar.png") @map("avatar_path")
   password          String
   userPlaylists     Playlist[] @relation("userPlaylists")
   favoritesSong     Song[]
