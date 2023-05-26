@@ -1,24 +1,69 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
+import { hash } from 'argon2'
+import { PrismaService } from '../prisma.service'
+import { varieties } from '../types/varieties'
+import { UserUpdateDto } from './dto/user.update.dto'
 
 @Injectable()
 export class UsersService {
-	create() {
-		return 'This action adds a new user'
+	constructor(private readonly prisma: PrismaService) {}
+
+	async getById(id: number, selectObject: Prisma.UserSelect = {}) {
+		const user = await this.prisma.user.findUnique({
+			where: { id },
+			select: {
+				...returnUserObject,
+				...selectObject,
+				favoritesSong: true
+			}
+		})
+		if (!user) throw new BadRequestException('User not found')
+		return user
 	}
 
-	findAll() {
-		return `This action returns all users`
+	async updateUser(userId: number, dto: UserUpdateDto) {
+		const isSameUser = await this.prisma.user.findUnique({
+			where: { email: dto.email }
+		})
+		if (isSameUser && isSameUser.id !== userId)
+			return new BadRequestException('User with this email already exists')
+
+		const user = await this.getById(userId, {
+			password: true
+		})
+		return this.prisma.user.update({
+			where: { id: userId },
+			data: {
+				email: dto.email,
+				password: dto.password ? await hash(dto.password) : user.password,
+				avatarPath: dto.avatarPath,
+				name: dto.name
+			}
+		})
 	}
 
-	findOne(id: number) {
-		return `This action returns a #${id} user`
-	}
+	async toggleFavorite(userId: number, id: number, type: varieties) {
+		const user = await this.getById(userId)
 
-	update(id: number) {
-		return `This action updates a #${id} user`
-	}
+		if (!user) return new BadRequestException('User not found')
+		const favoriteType =
+			type === 'song'
+				? 'favoritesSong'
+				: type === 'album'
+				? 'favoritesAlbum'
+				: type === 'artist'
+				? 'favoritesArtist'
+				: 'favoritesPlaylist'
 
-	remove(id: number) {
-		return `This action removes a #${id} user`
+		const isFavorite = user[favoriteType].some(item => item.id === id)
+		await this.prisma.user.update({
+			where: { id: userId },
+			data: {
+				[favoriteType]: {
+					[isFavorite ? 'disconnect' : 'connect']: { id }
+				}
+			}
+		})
 	}
 }

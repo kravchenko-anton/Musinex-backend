@@ -8,14 +8,36 @@ datasource db {
 }
 
 model User {
-  id         Int        @id @default(autoincrement())
-  createdAt  DateTime   @default(now()) @map("created_at")
-  updatedAt  DateTime   @updatedAt @map("updated_at")
-  email      String     @unique
-  name       String?
-  avatarPath String     @default("/assets/noAvatar.png") @map("avatar_path")
-  password   String
-  playlists  Playlist[]
+  id                Int        @id @default(autoincrement())
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+  email             String     @unique
+  name              String?
+  avatarPath        String     @default("/assets/noAvatar.png") @map("avatar_path")
+  password          String
+  userPlaylists     Playlist[] @relation("userPlaylists")
+  favoritesSong     Song[]
+  favoritesAlbum    Album[]
+  favoritesArtist   Artist[]
+  favoritePlayLists Playlist[] @relation("userFavoritePlaylists")
+}
+
+model Playlist {
+  id             Int      @id @default(autoincrement())
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  title          String   @unique
+  coverBig       String   @map("cover_big")
+  coverMedium    String   @map("cover_medium")
+  coverSmall     String   @map("cover_small")
+  fans           Int
+  releaseDate    DateTime @map("release_date")
+  songs          Song[]
+  genres         Genre[]
+  userId         Int?     @map("user_id")
+  favoriteUserId Int?     @map("favorite_user_id")
+  User           User?    @relation("userFavoritePlaylists", fields: [userId], references: [id])
+  FavoriteUser   User?    @relation("userPlaylists", fields: [favoriteUserId], references: [id])
 }
 
 model Song {
@@ -31,8 +53,10 @@ model Song {
   mp3Path     String     @map("mp3_path")
   albums      Album[]
   artists     Artist[]
-  genres      Genre[]
   playlists   Playlist[]
+  genres      Genre[]
+  User        User?      @relation(fields: [userId], references: [id])
+  userId      Int?       @map("user_id")
 }
 
 model Album {
@@ -46,8 +70,10 @@ model Album {
   fans        Int
   releaseDate DateTime @map("release_date")
   artist      Artist[]
-  genres      Genre[]
+  genre       Genre[]
   songs       Song[]
+  User        User?    @relation(fields: [userId], references: [id])
+  userId      Int?     @map("user_id")
 }
 
 model Artist {
@@ -61,28 +87,16 @@ model Artist {
   pictureSmall  String   @map("picture_small")
   albums        Album[]
   songs         Song[]
-}
-
-model Playlist {
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  title       String   @unique
-  coverBig    String   @map("cover_big")
-  coverMedium String   @map("cover_medium")
-  coverSmall  String   @map("cover_small")
-  fans        Int
-  releaseDate DateTime @map("release_date")
-  userId      Int?
-  User        User?    @relation(fields: [userId], references: [id])
-  songs       Song[]
+  User          User?    @relation(fields: [userId], references: [id])
+  userId        Int?     @map("user_id")
 }
 
 model Genre {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  name      String   @unique
-  albums    Album[]
+  id        Int        @id @default(autoincrement())
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  name      String     @unique
   songs     Song[]
+  albums    Album[]
+  playlists Playlist[]
 }
