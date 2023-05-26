@@ -1,7 +1,14 @@
-import { Controller } from '@nestjs/common';
-import { PlaylistService } from './playlist.service';
+import { Controller, Get, HttpCode } from "@nestjs/common";
+import { PlaylistService } from "./playlist.service";
 
-@Controller('playlist')
+@Controller("playlist")
 export class PlaylistController {
-  constructor(private readonly playlistService: PlaylistService) {}
+  constructor(private readonly playlistService: PlaylistService) {
+  }
+  
+  @HttpCode(200)
+  @Get(":id")
+  async getPlaylistById(id: number) {
+    return this.playlistService.getPlaylistById(id);
+  }
 }

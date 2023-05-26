@@ -1,21 +1,21 @@
-import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
-import { AppController } from './app.controller'
-import { AppService } from './app.service'
-import { PrismaService } from './prisma.service'
-import { UsersModule } from './users/users.module'
-import { AuthModule } from './auth/auth.module';
-import { PlaylistModule } from './playlist/playlist.module';
-import { AlbumModule } from './album/album.module';
-import { SongModule } from './song/song.module';
-import { ArtistModule } from './artist/artist.module';
-import { GenreModule } from './genre/genre.module';
-import { StatisticResolver } from './statistic/statistic.resolver';
-import { StatiscticModule } from './statisctic/statisctic.module';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { AlbumModule } from "./album/album.module";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import { ArtistModule } from "./artist/artist.module";
+import { AuthModule } from "./auth/auth.module";
+import { GenreModule } from "./genre/genre.module";
+import { PlaylistModule } from "./playlist/playlist.module";
+import { PrismaService } from "./prisma.service";
+import { SearchModule } from "./search/search.module";
+import { StatisticsModule } from "./statistics/statistics.module";
+import { UsersModule } from "./users/users.module";
 
 @Module({
-	imports: [ConfigModule.forRoot(), UsersModule, AuthModule, PlaylistModule, AlbumModule, SongModule, ArtistModule, GenreModule, StatiscticModule],
-	controllers: [AppController],
-	providers: [AppService, PrismaService, StatisticResolver]
+  imports: [ConfigModule.forRoot(), UsersModule, AuthModule, PlaylistModule, AlbumModule, ArtistModule, GenreModule, SearchModule, StatisticsModule],
+  controllers: [AppController],
+  providers: [AppService, PrismaService]
 })
-export class AppModule {}
+export class AppModule {
+}
