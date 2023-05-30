@@ -13,11 +13,11 @@ export class UsersService {
   
   async getById(id: number, selectObject: Prisma.UserSelect = {}) {
     // if !selectObject.id, returnUserObject will be used
-    const returnSelectObject = selectObject.id ? { ...selectObject } : { ...returnUserObject };
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
-        ...returnSelectObject
+        ...returnUserObject,
+        ...selectObject
       }
     });
     if (!user) throw new BadRequestException("User not found");

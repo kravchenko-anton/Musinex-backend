@@ -14,7 +14,15 @@ export class UsersController {
   @Auth()
   @Get("/get-profile")
   async getProfile(@CurrentUser("id") id: number) {
-    return this.usersService.getById(id);
+    return this.usersService.getById(id, {
+      email: true,
+      name: true,
+      userPlaylists: true,
+      favoritePlayLists: true,
+      favoritesAlbum: true,
+      favoritesArtist: true,
+      favoritesSong: true
+    });
   }
   
   @HttpCode(200)

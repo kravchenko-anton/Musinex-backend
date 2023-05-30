@@ -8,35 +8,50 @@ export class SearchService {
   
   async search(query: string) {
     const results = await this.prisma.$transaction([
-      this.prisma.$queryRaw`SELECT * FROM "Song" WHERE title LIKE ${query} OR title LIKE '%' || ${query} || '%';`,
-      this.prisma.$queryRaw`SELECT * FROM "Artist" WHERE name LIKE ${query} OR name LIKE '%' || ${query} || '%';`,
-      this.prisma.$queryRaw`SELECT * FROM "Playlist" WHERE title LIKE ${query} OR title LIKE '%' || ${query} || '%';`,
-      this.prisma.$queryRaw`SELECT * FROM "Album" WHERE title LIKE ${query} OR title LIKE '%' || ${query} || '%';`
+      this.prisma.song.findMany({
+        where: {
+          OR: [
+            { title: { contains: query, mode: "insensitive" } }
+          ]
+        }
+      }),
+      this.prisma.artist.findMany({
+        where: {
+          OR: [
+            { name: { contains: query, mode: "insensitive" } }
+          ]
+        }
+      }),
+      this.prisma.playlist.findMany({
+        where: {
+          OR: [
+            { title: { contains: query, mode: "insensitive" } }
+          ]
+        }
+      }),
+      this.prisma.album.findMany({
+        where: {
+          OR: [
+            { title: { contains: query, mode: "insensitive" } }
+          ]
+        }
+      })
     ]);
     
     if (!results) throw new Error("Not Found");
-    return {
-      songs: results[0],
-      artists: results[1],
-      playlists: results[2],
-      albums: results[3]
-    };
+    return results;
   }
   
   async getCatalog() {
-    const results = await this.prisma.$transaction([
-      this.prisma.$queryRaw`SELECT * FROM "Song" ORDER BY RANDOM() LIMIT 40;`,
-      this.prisma.$queryRaw`SELECT * FROM "Artist" ORDER BY RANDOM() LIMIT 40;`,
-      this.prisma.$queryRaw`SELECT * FROM "Playlist" ORDER BY RANDOM() LIMIT 40;`,
-      this.prisma.$queryRaw`SELECT * FROM "Album" ORDER BY RANDOM() LIMIT 40;`
+    const catalog = await this.prisma.$transaction([
+      this.prisma.song.findMany({
+        take: 25,
+        include: { artists: { take: 1 } }
+      }),
+      this.prisma.artist.findMany({ take: 25 }),
+      this.prisma.playlist.findMany({ take: 25 }),
+      this.prisma.album.findMany({ take: 25 })
     ]);
-    
-    if (!results) throw new Error("Not Found");
-    return {
-      songs: results[0],
-      artists: results[1],
-      playlists: results[2],
-      albums: results[3]
-    };
+    return catalog;
   }
 }

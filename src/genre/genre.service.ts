@@ -7,7 +7,13 @@ export class GenreService {
   }
   
   getAll() {
-    return this.prisma.genre.findMany();
+    return this.prisma.genre.findMany({
+      include: {
+        songs: {
+          take: 1
+        }
+      }
+    });
   }
   
   getById(id: number) {
