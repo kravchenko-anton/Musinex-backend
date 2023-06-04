@@ -1,5 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { ServeStaticModule } from "@nestjs/serve-static";
+import { join } from "path";
 import { AlbumModule } from "./album/album.module";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -12,7 +14,9 @@ import { SearchModule } from "./search/search.module";
 import { UsersModule } from "./users/users.module";
 
 @Module({
-  imports: [ConfigModule.forRoot(), UsersModule, AuthModule, PlaylistModule, AlbumModule, ArtistModule, GenreModule, SearchModule],
+  imports: [ConfigModule.forRoot(), ServeStaticModule.forRoot({
+    rootPath: join(__dirname, "..", "assets")
+  }), UsersModule, AuthModule, PlaylistModule, AlbumModule, ArtistModule, GenreModule, SearchModule],
   controllers: [AppController],
   providers: [AppService, PrismaService]
 })
