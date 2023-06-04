@@ -83,7 +83,9 @@ const seedAlreadyAddedAlbum = async () => {
                           name: prismaGenres
                         },
                         create: {
-                          name: prismaGenres
+                          name: prismaGenres,
+                          icon: "../assets/genre.png",
+                          color: "#101010"
                         }
                       }
                     },

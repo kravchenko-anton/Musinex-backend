@@ -9,6 +9,9 @@ export class SearchService {
   async search(query: string) {
     const results = await this.prisma.$transaction([
       this.prisma.song.findMany({
+        include: {
+          artists: true
+        },
         where: {
           OR: [
             { title: { contains: query, mode: "insensitive" } }
@@ -23,6 +26,10 @@ export class SearchService {
         }
       }),
       this.prisma.playlist.findMany({
+        include: {
+          User: true
+        },
+        
         where: {
           OR: [
             { title: { contains: query, mode: "insensitive" } }
@@ -30,6 +37,9 @@ export class SearchService {
         }
       }),
       this.prisma.album.findMany({
+        include: {
+          artist: true
+        },
         where: {
           OR: [
             { title: { contains: query, mode: "insensitive" } }
@@ -39,19 +49,29 @@ export class SearchService {
     ]);
     
     if (!results) throw new Error("Not Found");
-    return results;
+    return {
+      songs: results[0],
+      artists: results[1],
+      playlists: results[2],
+      albums: results[3]
+    };
   }
   
   async getCatalog() {
     const catalog = await this.prisma.$transaction([
       this.prisma.song.findMany({
         take: 25,
-        include: { artists: { take: 1 } }
+        include: { artists: true }
       }),
       this.prisma.artist.findMany({ take: 25 }),
-      this.prisma.playlist.findMany({ take: 25 }),
-      this.prisma.album.findMany({ take: 25 })
+      this.prisma.playlist.findMany({ take: 25, include: { User: true } }),
+      this.prisma.album.findMany({ take: 25, include: { artist: true } })
     ]);
-    return catalog;
+    return {
+      songs: catalog[0],
+      artists: catalog[1],
+      playlists: catalog[2],
+      albums: catalog[3]
+    };
   }
 }

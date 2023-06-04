@@ -196,7 +196,9 @@ const createPlaylistFromPopular = async (startIndex: number = 0) => {
                         name: album.genres.data[0].name
                       },
                       create: {
-                        name: album.genres.data[0].name
+                        name: album.genres.data[0].name,
+                        icon: "../assets/genres/genre.icon",
+                        color: "#000000"
                       }
                     }
                   },

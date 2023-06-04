@@ -94,6 +94,8 @@ model Genre {
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
   name      String     @unique
+  color     String
+  icon      String
   songs     Song[]
   albums    Album[]
   playlists Playlist[]
