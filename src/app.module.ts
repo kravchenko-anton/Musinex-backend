@@ -15,7 +15,7 @@ import { UsersModule } from "./users/users.module";
 
 @Module({
   imports: [ConfigModule.forRoot(), ServeStaticModule.forRoot({
-    rootPath: join(__dirname, "..", "assets")
+    rootPath: join(__dirname, "..", "public")
   }), UsersModule, AuthModule, PlaylistModule, AlbumModule, ArtistModule, GenreModule, SearchModule],
   controllers: [AppController],
   providers: [AppService, PrismaService]

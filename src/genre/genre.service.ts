@@ -12,6 +12,9 @@ export class GenreService {
         songs: {
           take: 1
         }
+      },
+      orderBy: {
+        id: "asc"
       }
     });
   }
