@@ -10,6 +10,14 @@ export class PlaylistService {
     const playlist = this.prisma.playlist.findUnique({
       where: {
         id: +id
+      }, include: {
+        songs: {
+          include: {
+            artists: true
+          }
+        },
+        genres: true,
+        User: true
       }
     });
     

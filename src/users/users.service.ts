@@ -50,8 +50,12 @@ export class UsersService {
   }
   
   async toggleFavorite(userId: number, id: number, type: varieties) {
-    const user = await this.getById(+userId);
-    
+    const user = await this.getById(+userId, {
+      favoritesSong: true,
+      favoritesAlbum: true,
+      favoritesArtist: true,
+      favoritePlayLists: true
+    });
     if (!user) return new BadRequestException("User not found");
     const favoriteType =
       type === "song"
@@ -60,8 +64,7 @@ export class UsersService {
           ? "favoritesAlbum"
           : type === "artist"
             ? "favoritesArtist"
-            : "favoritesPlaylist";
-    
+            : "favoritePlayLists";
     const isFavorite = user[favoriteType].some(item => item.id === +id);
     await this.prisma.user.update({
       where: { id: +userId },
@@ -71,6 +74,10 @@ export class UsersService {
         }
       }
     });
-    return this.getById(+userId);
+    return {
+      type: type,
+      id: id,
+      isFavorite: `${!isFavorite}`
+    };
   }
 }

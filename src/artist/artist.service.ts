@@ -10,6 +10,9 @@ export class ArtistService {
     const artist = this.prisma.artist.findUnique({
       where: {
         id: +id
+      }, include: {
+        songs: true,
+        albums: true
       }
     });
     if (!artist) throw new Error("Artist not found");

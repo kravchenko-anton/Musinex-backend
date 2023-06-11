@@ -10,7 +10,10 @@ export class GenreService {
     return this.prisma.genre.findMany({
       include: {
         songs: {
-          take: 1
+          take: 1,
+          include: {
+            artists: true
+          }
         }
       },
       orderBy: {
@@ -23,9 +26,25 @@ export class GenreService {
     const genre = this.prisma.genre.findUnique({
       where: { id: +id },
       include: {
-        albums: true,
-        songs: true,
-        playlists: true
+        albums: {
+          where: {
+            genre: {
+              some: {
+                id: +id
+              }
+            }
+          }
+        },
+        songs: {
+          include: {
+            artists: true
+          }
+        },
+        playlists: {
+          include: {
+            genres: true
+          }
+        }
       }
     });
     
