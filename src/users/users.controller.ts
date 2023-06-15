@@ -21,7 +21,13 @@ export class UsersController {
       favoritePlayLists: true,
       favoritesAlbum: true,
       favoritesArtist: true,
-      favoritesSong: true
+      favoritesSong: {
+        include: {
+          artists: {
+            take: 1
+          }
+        }
+      }
     });
   }
   
