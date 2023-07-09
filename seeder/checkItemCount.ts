@@ -1,5 +1,5 @@
 const colors = require("colors");
-type searchType = "songs" | "playlists" | "albums" | "artists";
+type searchType = "tracks" | "playlists" | "albums" | "artists";
 export const SearchEqual = async (type: searchType, maxCount: number) => {
   const playlistCount = [];
   for (let i = 0; i < maxCount; i++) {
@@ -21,7 +21,7 @@ export const SearchEqual = async (type: searchType, maxCount: number) => {
 
 const main = async () => {
   console.log(colors.bgCyan("Start seeding..."));
-  await SearchEqual("playlists", 200);
+  await SearchEqual("tracks", 500);
 };
 
 
