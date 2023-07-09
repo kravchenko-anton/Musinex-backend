@@ -20,6 +20,8 @@
 		"seedPlaylists": "ts-node seeder/seedPlayList.ts",
 		"seedAlbums": "ts-node seeder/seedAlreadyAddedAlbum.ts",
 		"seedSongs": "ts-node seeder/seedSong.ts",
+		"mp3": "ts-node seeder/mp3Parser.ts",
+		"related": "ts-node seeder/relatedSongParser.ts",
 		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
 		"test:e2e": "jest --config ./test/jest-e2e.json"
 	},
@@ -40,6 +42,7 @@
 		"passport": "^0.6.0",
 		"passport-jwt": "^4.0.1",
 		"pg": "^8.11.0",
+		"puppeteer": "^20.8.0",
 		"reflect-metadata": "^0.1.13",
 		"rxjs": "^7.2.0"
 	},

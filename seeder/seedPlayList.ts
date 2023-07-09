@@ -150,18 +150,6 @@ const createPlaylistFromPopular = async (startIndex: number = 0) => {
             coverBig: playlist.picture_big,
             coverMedium: playlist.picture_medium,
             coverSmall: playlist.picture_small,
-            User: {
-              connectOrCreate: {
-                where: {
-                  email: "dreezer@gmail.com"
-                },
-                create: {
-                  name: "Deezer",
-                  email: "dreezer@gmail.com",
-                  password: "12345678"
-                }
-              }
-            },
             songs: {
               connectOrCreate: {
                 where: {

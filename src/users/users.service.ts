@@ -42,8 +42,7 @@ export class UsersService {
       where: { id: userId },
       data: {
         email: dto.email ? dto.email : user.email,
-        password: dto.password ? await hash(dto.password) : user.password,
-        name: dto.name ? dto.name : user.name
+        password: dto.password ? await hash(dto.password) : user.password
       }
     });
     return this.getById(userId);

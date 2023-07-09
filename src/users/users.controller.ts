@@ -16,7 +16,6 @@ export class UsersController {
   async getProfile(@CurrentUser("id") id: number) {
     return this.usersService.getById(id, {
       email: true,
-      name: true,
       userPlaylists: true,
       favoritePlayLists: true,
       favoritesAlbum: true,
