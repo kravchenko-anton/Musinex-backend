@@ -20,7 +20,6 @@
 		"seedPlaylists": "ts-node seeder/seedPlayList.ts",
 		"seedAlbums": "ts-node seeder/seedAlreadyAddedAlbum.ts",
 		"seed": "ts-node seeder/seedSong.ts",
-		"mp3": "ts-node seeder/mp3Parser.ts",
 		"related": "ts-node seeder/relatedSongParser.ts",
 		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
 		"test:e2e": "jest --config ./test/jest-e2e.json"

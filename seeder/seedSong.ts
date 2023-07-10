@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
-const puppeteer = require("puppeteer");
 const { RateLimit } = require("async-sema");
+const puppeteer = require("puppeteer");
 const colors = require("colors");
 
 const prisma = new PrismaClient();
