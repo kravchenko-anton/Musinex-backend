@@ -18,7 +18,6 @@ const createSongsFromPopular = async (startIndex: number = 0) => {
     ).then(res => res.json());
     for (let j = 0; j < search.data.length; j++) {
       await lim();
-      if (j > 297) break;
       const deezer = search.data[j];
       const track = await fetch(
         "https://api.deezer.com/track/" + deezer.id

@@ -4,215 +4,288 @@ const colors = require("colors");
 
 const prisma = new PrismaClient();
 
+const { RateLimit } = require("async-sema");
+const puppeteer = require("puppeteer");
+
+
 const createPlaylistFromPopular = async (startIndex: number = 0) => {
+  const lim = RateLimit(5);
+  const browser = await puppeteer.launch({
+    headless: "new"
+  });
+  const page = await browser.newPage();
   const popular = await fetch(
     `https://api.deezer.com/chart/${startIndex}/playlists?limit=1000`
   ).then(res => res.json());
   
   if (!popular || !popular.data) {
     console.log(colors.bgRed("Not found in popular playlists"));
-    return;
   }
   for (let i = 0; i < popular.data.length; i++) {
-    setTimeout(async () => {
-      const deezer = popular.data[i];
-      const playlist = await fetch(
-        `https://api.deezer.com/playlist/${deezer.id}`
-      ).then(res => res.json());
-      
-      if (!playlist || playlist.error) {
+    const deezer = popular.data[i];
+    const playlist = await fetch(
+      `https://api.deezer.com/playlist/${deezer.id}`
+    ).then(res => res.json());
+    
+    if (!playlist || playlist.error) {
+      await browser.newPage();
+      console.log(
+        colors.bgRed(
+          `${playlist.error ? "Error in" : "Not found in"} 'playlist' | ${
+            deezer.title
+          } - title | ${deezer.id} playlistID | ${i} songID`
+        )
+      );
+      continue;
+    }
+    
+    const songs = playlist.tracks.data;
+    
+    if (!songs || songs.length < 3) {
+      await browser.newPage();
+      console.log(colors.bgRed(`Not found in songs`));
+      continue;
+    }
+    const oldPlaylist = await prisma.playlist.findFirst({
+      where: {
+        title: playlist.title
+      }
+    });
+    if (oldPlaylist) {
+      await browser.newPage();
+      console.log(colors.bgRed(`Already added playlist`));
+      continue;
+    }
+    // Create playlist
+    await prisma.playlist.create({
+      include: {
+        genres: true,
+        songs: true
+      },
+      data: {
+        title: playlist.title,
+        releaseDate: new Date(playlist.creation_date),
+        fans: playlist.fans,
+        coverBig: playlist.picture_big,
+        coverMedium: playlist.picture_medium,
+        coverSmall: playlist.picture_small
+      }
+    });
+    
+    for (let j = 0; j < songs.length; j++) {
+      await lim();
+      const song = songs[j];
+      const slugifyName = deezer.title.replace(/ /g, "-").toLowerCase();
+      await page.goto(`https://music.я.ws/search/${slugifyName}`);
+      // Error handling for not found
+      const element = await page.$("#xbody > div > .xtitle");
+      if (element) {
+        await browser.newPage();
+        console.log("Not found in mp3Parser", deezer.title);
+        continue;
+      }
+      await page.waitForSelector(".playlist .track:nth-child(1)");
+      const mp3 = await page.evaluate(() => {
+        const quotes = document.querySelectorAll(".track");
+        return Array.from(quotes).map((q) => {
+          const title = q.querySelector(".playlist-name > em").textContent;
+          const author = q.querySelector(".playlist-name > b").textContent;
+          const song = q.getAttribute("data-mp3");
+          return { title, author, song };
+        });
+      });
+      const searchSong = mp3.find((q) => {
+        if (!q.title.toLowerCase() === deezer.title.toLowerCase()) return false;
+        return q.song;
+      });
+      if (!searchSong) {
+        await browser.newPage();
+        console.log("Not found in mp3 find", deezer.title);
+        continue;
+      }
+      if (
+        !song ||
+        !song.title ||
+        !song.duration ||
+        !song.artist ||
+        !song.artist.name ||
+        !song.album ||
+        !song.album.title ||
+        !song.album.cover_big ||
+        !song.album.cover_medium ||
+        !song.album.cover_small
+      ) {
+        await browser.newPage();
         console.log(
           colors.bgRed(
-            `${playlist.error ? "Error in" : "Not found in"} 'playlist' | ${
-              deezer.title
-            } - title | ${deezer.id} playlistID | ${i} songID`
+            `Not found in song ${j} | ${song.title} | ${song.duration} sek`
           )
         );
-        return;
+        continue;
+      }
+      const currentSong = await fetch(
+        `https://api.deezer.com/track/${song.id}`
+      ).then(res => res.json());
+      
+      if (
+        !currentSong ||
+        currentSong.error ||
+        !currentSong.album.id ||
+        !currentSong.artist.id
+      ) {
+        await browser.newPage();
+        console.log(colors.bgRed(`Not found in currentSong`));
+        continue;
       }
       
-      const songs = playlist.tracks.data;
+      const artist = await fetch(
+        "https://api.deezer.com/artist/" + currentSong.artist.id
+      ).then(res => res.json());
       
-      if (!songs || songs.length === 0) {
-        console.log(colors.bgRed(`Not found in songs`));
-        return;
+      const album = await fetch(
+        "https://api.deezer.com/album/" + currentSong.album.id
+      ).then(res => res.json());
+      
+      if (
+        !artist ||
+        artist.error ||
+        !album ||
+        album.error ||
+        !currentSong ||
+        currentSong.error ||
+        !album.genres ||
+        !album.genres.data[0] ||
+        !artist.name ||
+        !album.title
+      ) {
+        await browser.newPage();
+        console.log(
+          colors.bgRed(
+            `${artist.error ? "Error in" : "Not found in"} ${
+              !artist
+                ? "artist"
+                : !album
+                  ? "album"
+                  : !album.genres
+                    ? "album genres"
+                    : !artist.name
+                      ? "artist name"
+                      : !album.title
+                        ? "album title"
+                        : "track"
+            } | ${song.title} | ${deezer.id}id | ${j} index`
+          )
+        );
+        continue;
       }
-      // tracks
-      for (let j = 0; j < songs.length; j++) {
-        const song = songs[j];
-        
-        if (
-          !song ||
-          !song.title ||
-          !song.duration ||
-          !song.artist ||
-          !song.artist.name ||
-          !song.album ||
-          !song.album.title ||
-          !song.album.cover_big ||
-          !song.album.cover_medium ||
-          !song.album.cover_small
-        ) {
-          console.log(
-            colors.bgRed(
-              `Not found in song ${j} | ${song.title} | ${song.duration} sek`
-            )
-          );
-          return;
-        }
-        
-        const currentSong = await fetch(
-          `https://api.deezer.com/track/${song.id}`
-        ).then(res => res.json());
-        
-        if (
-          !currentSong ||
-          currentSong.error ||
-          !currentSong.album.id ||
-          !currentSong.artist.id
-        ) {
-          console.log(colors.bgRed(`Not found in currentSong`));
-          return;
-        }
-        
-        const artist = await fetch(
-          "https://api.deezer.com/artist/" + currentSong.artist.id
-        ).then(res => res.json());
-        
-        const album = await fetch(
-          "https://api.deezer.com/album/" + currentSong.album.id
-        ).then(res => res.json());
-        
-        if (
-          !artist ||
-          artist.error ||
-          !album ||
-          album.error ||
-          !currentSong ||
-          currentSong.error ||
-          !album.genres ||
-          !album.genres.data[0] ||
-          !artist.name ||
-          !album.title
-        ) {
-          console.log(
-            colors.bgRed(
-              `${artist.error ? "Error in" : "Not found in"} ${
-                !artist
-                  ? "artist"
-                  : !album
-                    ? "album"
-                    : !album.genres
-                      ? "album genres"
-                      : !artist.name
-                        ? "artist name"
-                        : !album.title
-                          ? "album title"
-                          : "track"
-              } | ${song.title}
-							- title | ${deezer.id} songID | ${j} songIndex`
-            )
-          );
-          return;
-        }
-        
-        const oldSong = await prisma.song.findFirst({
-          where: {
-            title: currentSong.title
-          }
-        });
-        
-        const oldPlayList = await prisma.playlist.findFirst({
-          where: {
-            title: deezer.title
-          }
-        });
-        
-        if (oldSong || oldPlayList) {
-          console.log(
-            colors.bgYellow(
-              `${oldSong ? "song" : "playlist"} ${j} | ${
-                deezer.title
-              } already exists`
-            )
-          );
-          return;
-        }
-        
-        await prisma.playlist.create({
-          include: {
-            songs: true
+      const genres = album.genres.data.map(genre => {
+        return genre.name;
+      });
+      const prismaGenres = genres.length > 0 ? genres[0] : "Other";
+      if (!prismaGenres) {
+        await browser.newPage();
+        console.log(colors.bgRed(`Not found in prismaGenres`));
+        continue;
+      }
+      await prisma.playlist.update({
+        include: {
+          songs: true,
+          genres: true
+        },
+        where: {
+          title: playlist.title
+        },
+        data: {
+          genres: {
+            connectOrCreate: {
+              where: {
+                name: prismaGenres
+              },
+              create: {
+                name: prismaGenres,
+                icon: "../assets/genre.png",
+                color: "#101010"
+              }
+            }
           },
-          data: {
-            title: playlist.title,
-            releaseDate: new Date(playlist.creation_date),
-            fans: playlist.fans,
-            coverBig: playlist.picture_big,
-            coverMedium: playlist.picture_medium,
-            coverSmall: playlist.picture_small,
-            songs: {
-              connectOrCreate: {
-                where: {
-                  title: currentSong.title
+          songs: {
+            connectOrCreate: {
+              where: {
+                title: currentSong.title
+              },
+              create: {
+                duration: currentSong.duration,
+                title: currentSong.title,
+                releaseDate: new Date(currentSong.release_date),
+                coverBig: currentSong.album.cover_big,
+                coverMedium: currentSong.album.cover_medium,
+                coverSmall: currentSong.album.cover_small,
+                mp3Path: `https://music.%D1%8F.ws/${searchSong.song}`,
+                albums: {
+                  connectOrCreate: {
+                    where: {
+                      title: album.title
+                    },
+                    create: {
+                      title: album.title,
+                      releaseDate: new Date(album.release_date),
+                      coverBig: album.cover_big,
+                      coverMedium: album.cover_medium,
+                      coverSmall: album.cover_small,
+                      fans: album.fans,
+                      artist: {
+                        connectOrCreate: {
+                          where: {
+                            name: artist.name
+                          },
+                          create: {
+                            name: artist.name,
+                            pictureBig: artist.picture_big,
+                            pictureMedium: artist.picture_medium,
+                            pictureSmall: artist.picture_small,
+                            followers: artist.nb_fan
+                          }
+                        }
+                      }
+                    }
+                  }
                 },
-                create: {
-                  duration: currentSong.duration,
-                  title: currentSong.title,
-                  releaseDate: new Date(currentSong.release_date),
-                  coverBig: currentSong.album.cover_big,
-                  coverMedium: currentSong.album.cover_medium,
-                  coverSmall: currentSong.album.cover_small,
-                  mp3Path: currentSong.preview,
-                  albums: {
-                    connectOrCreate: {
-                      where: {
-                        title: album.title
-                      },
-                      create: {
-                        title: album.title,
-                        releaseDate: new Date(album.release_date),
-                        coverBig: album.cover_big,
-                        coverMedium: album.cover_medium,
-                        coverSmall: album.cover_small,
-                        fans: album.fans
-                      }
+                genres: {
+                  connectOrCreate: {
+                    where: {
+                      name: album.genres.data[0].name
+                    },
+                    create: {
+                      name: album.genres.data[0].name,
+                      icon: "../assets/genres/genre.icon",
+                      color: "#000000"
                     }
-                  },
-                  genres: {
-                    connectOrCreate: {
-                      where: {
-                        name: album.genres.data[0].name
-                      },
-                      create: {
-                        name: album.genres.data[0].name,
-                        icon: "../assets/genres/genre.icon",
-                        color: "#000000"
-                      }
-                    }
-                  },
-                  artists: {
-                    connectOrCreate: {
-                      where: {
-                        name: artist.name
-                      },
-                      create: {
-                        name: artist.name,
-                        pictureBig: artist.picture_big,
-                        pictureMedium: artist.picture_medium,
-                        pictureSmall: artist.picture_small,
-                        followers: artist.nb_fan
-                      }
+                  }
+                },
+                artist: {
+                  connectOrCreate: {
+                    where: {
+                      name: artist.name
+                    },
+                    create: {
+                      name: artist.name,
+                      pictureBig: artist.picture_big,
+                      pictureMedium: artist.picture_medium,
+                      pictureSmall: artist.picture_small,
+                      followers: artist.nb_fan
                     }
                   }
                 }
               }
             }
           }
-        });
-        
-        console.log(colors.bgGreen(`Created playlist ${i} | ${playlist.title}`));
-      }
-    }, (i + startIndex) * 500);
+        }
+      });
+      await browser.newPage();
+      console.log(colors.bgGreen(`Created playlist ${i} | ${playlist.title} | ${
+        song.title
+      }`));
+    }
   }
 };
 const main = async () => {
