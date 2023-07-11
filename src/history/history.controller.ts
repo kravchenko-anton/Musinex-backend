@@ -22,4 +22,12 @@ export class HistoryController {
   getHistory(@CurrentUser("id") id: number) {
     return this.historyService.getHistory(id);
   }
+  
+  
+  @HttpCode(200)
+  @Auth()
+  @Get("/get-list")
+  getHistoryList(@CurrentUser("id") id: number) {
+    return this.historyService.getHistoryList(id);
+  }
 }

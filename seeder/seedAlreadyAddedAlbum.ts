@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { mp3Parse } from "./mp3Parse";
 
 const { RateLimit } = require("async-sema");
 const puppeteer = require("puppeteer");
@@ -69,31 +70,12 @@ const seedAlreadyAddedAlbum = async () => {
     }
     for (let i = 0; i < FetchSongs.data.length; i++) {
       const song = FetchSongs.data[i];
-      const slugifyName = song.title.replace(/ /g, "-").toLowerCase();
-      await page.goto(`https://music.я.ws/search/${slugifyName}`);
-      const element = await page.$("#xbody > div > .xtitle");
-      if (element) {
-        await browser.newPage();
-        console.log("Not found in mp3Parser", song.title);
-        continue;
-      }
-      await page.waitForSelector(".playlist .track:nth-child(1)");
-      const mp3 = await page.evaluate(() => {
-        const quotes = document.querySelectorAll(".track");
-        return Array.from(quotes).map((q) => {
-          const title = q.querySelector(".playlist-name > em").textContent;
-          const author = q.querySelector(".playlist-name > b").textContent;
-          const song = q.getAttribute("data-mp3");
-          return { title, author, song };
-        });
-      });
-      const searchSong = mp3.find((q) => {
-        if (!q.title.toLowerCase() === song.title.toLowerCase()) return false;
-        return q.song;
+      const searchSong = await mp3Parse(song.title, browser, page).catch(e => {
+        console.log(colors.bgRed.white.bold("Error in mp3Parse" + song.title));
       });
       if (!searchSong) {
         await browser.newPage();
-        console.log("Not found in mp3 find", song.title);
+        console.log(colors.bgRed.white.bold("Not found in mp3Parse" + song.title));
         continue;
       }
       if (FetchSongs.data.length < 3) {
@@ -135,7 +117,7 @@ const seedAlreadyAddedAlbum = async () => {
                 title: song.title,
                 releaseDate: new Date(album.releaseDate),
                 duration: song.duration,
-                mp3Path: `https://music.%D1%8F.ws/${searchSong.song}`,
+                mp3Path: searchSong,
                 coverBig: album.coverBig,
                 coverMedium: album.coverMedium,
                 coverSmall: album.coverSmall,

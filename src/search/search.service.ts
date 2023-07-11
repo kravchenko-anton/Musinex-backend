@@ -1,77 +1,74 @@
 import { Injectable } from "@nestjs/common";
+import { HistoryService } from "../history/history.service";
 import { PrismaService } from "../prisma.service";
+import { RecommendationService } from "../recommendation/recommendation.service";
 
 @Injectable()
 export class SearchService {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(private readonly prisma: PrismaService,
+              private readonly userHistory: HistoryService,
+              private readonly recommendation: RecommendationService
+  ) {
   }
   
   async search(query: string) {
     const results = await this.prisma.$transaction([
-      this.prisma.song.findMany({
-        include: {
-          artist: true
-        },
-        where: {
-          OR: [
-            { title: { contains: query, mode: "insensitive" } }
-          ]
-        }
-      }),
-      this.prisma.artist.findMany({
-        where: {
-          OR: [
-            { name: { contains: query, mode: "insensitive" } }
-          ]
-        }
-      }),
-      this.prisma.playlist.findMany({
-        include: {
-          User: true
-        },
-        
-        where: {
-          OR: [
-            { title: { contains: query, mode: "insensitive" } }
-          ]
-        }
-      }),
-      this.prisma.album.findMany({
-        include: {
-          artist: true
-        },
-        where: {
-          OR: [
-            { title: { contains: query, mode: "insensitive" } }
-          ]
-        }
-      })
+      this.prisma.$queryRaw`
+SELECT *
+FROM "Song"
+LEFT   JOIN "Artist" ON "Song"."artistId" = "Artist"."id"
+WHERE "Song".title LIKE ${query} OR "Song".title LIKE '%' || ${query} || '%';
+`,
+      this.prisma.$queryRaw`
+SELECT *
+FROM "Album"
+LEFT JOIN "Artist" ON "Album"."artistId" = "Artist"."id"
+WHERE "Album".title LIKE ${query} OR "Album".title LIKE '%' || ${query} || '%';
+`,
+      this.prisma.$queryRaw`
+SELECT *
+FROM "Playlist"
+WHERE "Playlist".title LIKE ${query} OR "Playlist".title LIKE '%' || ${query} || '%';
+`
+      ,
+      this.prisma.$queryRaw`
+SELECT *
+FROM "Artist"
+WHERE "Artist".name LIKE ${query} OR "Artist".name LIKE '%' || ${query} || '%';
+`
     ]);
-    
     if (!results) throw new Error("Not Found");
     return {
       songs: results[0],
-      artists: results[1],
+      albums: results[1],
       playlists: results[2],
-      albums: results[3]
+      artists: results[3]
     };
   }
   
-  async getCatalog() {
-    const catalog = await this.prisma.$transaction([
-      this.prisma.song.findMany({
-        take: 25,
-        include: { artist: true }
-      }),
-      this.prisma.artist.findMany({ take: 25 }),
-      this.prisma.playlist.findMany({ take: 25, include: { User: true } }),
-      this.prisma.album.findMany({ take: 25, include: { artist: true } })
-    ]);
+  async getCatalog(id: number) {
+    const popularArtists = await this.prisma.artist.findMany({
+      orderBy: {
+        followers: "desc"
+      },
+      take: 10
+    });
+    const mixes = await this.recommendation.getMix(id);
+    const lastReleases = await this.prisma.song.findMany({
+      orderBy: {
+        releaseDate: "desc"
+      },
+      take: 10,
+      include: {
+        artist: true
+      }
+    });
+    const historyList = await this.userHistory.getHistoryList(id);
     return {
-      songs: catalog[0],
-      artists: catalog[1],
-      playlists: catalog[2],
-      albums: catalog[3]
+      lastReleases,
+      popularArtists,
+      mixes,
+      historyList
     };
   }
 }

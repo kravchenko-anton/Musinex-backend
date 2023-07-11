@@ -26,10 +26,5 @@ export class RecommendationController {
     return this.recommendationService.getMix(id);
   }
   
-  @HttpCode(200)
-  @Auth()
-  @Get("/get-most-recent-artist")
-  getMostRecentArtist(@CurrentUser("id") id: number) {
-    return this.recommendationService.getMostRecentArtist(id);
-  }
+  
 }

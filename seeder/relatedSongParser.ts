@@ -1,11 +1,12 @@
 import { PrismaClient } from "@prisma/client";
+import { mp3Parse } from "./mp3Parse";
 
 const { RateLimit } = require("async-sema");
 const colors = require("colors");
 const puppeteer = require("puppeteer");
 const prisma = new PrismaClient();
 export const relatedSongParser = async (name: string): Promise<{ title: string, author: string }[]> => {
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({ headless: false, ignoreHTTPSErrors: true });
   const page = await browser.newPage();
   await page.goto(`https://www.chosic.com/playlist-generator/`);
   await page.waitForSelector(".css-47sehv");
@@ -22,7 +23,7 @@ export const relatedSongParser = async (name: string): Promise<{ title: string, 
       const title = q.querySelector(".track-list-item-info-text > div > a").textContent;
       const author = q.querySelector(".track-list-item-info-genres > p").textContent;
       return { title, author };
-    });
+    }).slice(0, 6);
   });
 };
 // prisma loop for get all songs
@@ -44,7 +45,10 @@ const parseAllRelatedSongs = async () => {
   for (let i = 0; i < songs.length; i++) {
     const lim = RateLimit(5);
     const song = songs[i];
-    // loop for related songs
+    if (song.relatedSongs.length > 0) {
+      console.log(colors.bgYellow.bold("Already parsed" + song.title));
+      continue;
+    }
     const relatedSongs = await relatedSongParser(song.title);
     for (let j = 0; j < relatedSongs.length; j++) {
       await lim();
@@ -70,33 +74,12 @@ const parseAllRelatedSongs = async () => {
       const album = await fetch(
         "https://api.deezer.com/album/" + dreezieSong.album.id
       ).then(res => res.json());
-      
-      const slugifyName = relatedSong.title.replace(/ /g, "-").toLowerCase();
-      
-      await page.goto(`https://music.я.ws/search/${slugifyName}`);
-      const element = await page.$("#xbody > div > .xtitle");
-      if (element) {
-        await browser.newPage();
-        console.log("Not found in mp3Parser", relatedSong.title);
-        continue;
-      }
-      await page.waitForSelector(".playlist .track:nth-child(1)");
-      const mp3 = await page.evaluate(() => {
-        const quotes = document.querySelectorAll(".track");
-        return Array.from(quotes).map((q) => {
-          const title = q.querySelector(".playlist-name > em").textContent;
-          const author = q.querySelector(".playlist-name > b").textContent;
-          const song = q.getAttribute("data-mp3");
-          return { title, author, song };
-        });
-      });
-      const searchSong = mp3.find((q) => {
-        if (!q.title.toLowerCase() === dreezieSong.title.toLowerCase()) return false;
-        return q.song;
+      const searchSong = await mp3Parse(relatedSong.title, browser, page).catch(e => {
+        console.log(colors.bgRed("Error in mp3Parse " + relatedSong.title));
       });
       if (!searchSong) {
         await browser.newPage();
-        console.log("Not found in mp3 find", dreezieSong.title);
+        console.log(colors.bgRed("Not found in mp3 " + relatedSong.title));
         continue;
       }
       if (
@@ -138,14 +121,31 @@ const parseAllRelatedSongs = async () => {
       const oldSong = await prisma.song.findFirst({
         where: {
           title: dreezieSong.title
+        },
+        include: {
+          relatedSongs: true
         }
       });
-      
+      if (relatedSong.title == song.title) {
+        await browser.newPage();
+        console.log(colors.bgYellow(`Song ${dreezieSong.title} it self`));
+        continue;
+      }
       if (oldSong) {
         await browser.newPage();
-        console.log(
-          colors.bgYellow(`Song ${j} | ${dreezieSong.title} already exists`)
-        );
+        await prisma.song.update({
+          where: {
+            title: song.title
+          },
+          data: {
+            relatedSongs: {
+              connect: {
+                title: dreezieSong.title
+              }
+            }
+          }
+        });
+        console.log(colors.bgBlue(`Song ${dreezieSong.title}  connected`));
         continue;
       }
       await prisma.song.create({
@@ -155,7 +155,7 @@ const parseAllRelatedSongs = async () => {
         data: {
           title: dreezieSong.title,
           duration: dreezieSong.duration,
-          mp3Path: `https://music.%D1%8F.ws/${searchSong.song}`,
+          mp3Path: searchSong,
           coverBig: dreezieSong.album.cover_big,
           coverMedium: dreezieSong.album.cover_medium,
           coverSmall: dreezieSong.album.cover_small,
@@ -235,7 +235,6 @@ const parseAllRelatedSongs = async () => {
           }
         }
       });
-      
       await browser.newPage();
       console.log(
         colors.bgGreen(`Song ${j} | ${dreezieSong.title} successfully added`)
@@ -247,5 +246,5 @@ const parseAllRelatedSongs = async () => {
 parseAllRelatedSongs().then(() => {
   console.log("done");
 }).catch(e => {
-  console.log(e);
+  console.log(colors.bgRed(e));
 });

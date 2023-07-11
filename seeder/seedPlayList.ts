@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { mp3Parse } from "./mp3Parse";
 
 const colors = require("colors");
 
@@ -75,32 +76,12 @@ const createPlaylistFromPopular = async (startIndex: number = 0) => {
     for (let j = 0; j < songs.length; j++) {
       await lim();
       const song = songs[j];
-      const slugifyName = deezer.title.replace(/ /g, "-").toLowerCase();
-      await page.goto(`https://music.я.ws/search/${slugifyName}`);
-      // Error handling for not found
-      const element = await page.$("#xbody > div > .xtitle");
-      if (element) {
-        await browser.newPage();
-        console.log("Not found in mp3Parser", deezer.title);
-        continue;
-      }
-      await page.waitForSelector(".playlist .track:nth-child(1)");
-      const mp3 = await page.evaluate(() => {
-        const quotes = document.querySelectorAll(".track");
-        return Array.from(quotes).map((q) => {
-          const title = q.querySelector(".playlist-name > em").textContent;
-          const author = q.querySelector(".playlist-name > b").textContent;
-          const song = q.getAttribute("data-mp3");
-          return { title, author, song };
-        });
-      });
-      const searchSong = mp3.find((q) => {
-        if (!q.title.toLowerCase() === deezer.title.toLowerCase()) return false;
-        return q.song;
+      const searchSong = await mp3Parse(song.title, browser, page).catch(e => {
+        console.log(colors.bgRed.white.bold("Error in mp3Parse" + song.title + " " + e));
       });
       if (!searchSong) {
         await browser.newPage();
-        console.log("Not found in mp3 find", deezer.title);
+        console.log(colors.bgRed.white.bold("Not found in mp3Parse" + song.title));
         continue;
       }
       if (
@@ -220,7 +201,7 @@ const createPlaylistFromPopular = async (startIndex: number = 0) => {
                 coverBig: currentSong.album.cover_big,
                 coverMedium: currentSong.album.cover_medium,
                 coverSmall: currentSong.album.cover_small,
-                mp3Path: `https://music.%D1%8F.ws/${searchSong.song}`,
+                mp3Path: searchSong,
                 albums: {
                   connectOrCreate: {
                     where: {

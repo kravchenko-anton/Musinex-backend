@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma.service";
 import { CreateHistoryDto } from "./dto/create-history.dto";
 
@@ -32,7 +31,7 @@ export class HistoryService {
     
   }
   
-  async getHistory(id: number, selectObject: Prisma.HistorySelect = {}) {
+  async getHistory(id: number) {
     return this.prisma.history.findMany({
       where: {
         User: {
@@ -40,9 +39,44 @@ export class HistoryService {
         }
       },
       select: {
-        ...selectObject
+        songs: {
+          include: {
+            relatedSongs: {
+              include: {
+                artist: true
+              }
+            }
+          }
+        }
       }
     });
     
   }
+  
+  async getHistoryList(id: number) {
+    const history = await this.prisma.history.findMany({
+      where: {
+        User: {
+          id
+        }
+      },
+      take: 10,
+      select: {
+        songs: {
+          include: {
+            artist: true
+          }
+        }
+      }
+    });
+    const list = [];
+    for (const item of history) {
+      item.songs.forEach((song) => {
+        if (list.find((element) => element.title == song.title)) return;
+        return list.push(song);
+      });
+    }
+    return list;
+  }
+  
 }
