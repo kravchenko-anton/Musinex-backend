@@ -11,9 +11,10 @@ export class ArtistService {
       where: {
         id: +id
       }, include: {
-        songs: true,
-        albums: true
+        Song: true,
+        Album: true
       }
+      
     });
     if (!artist) throw new Error("Artist not found");
     return artist;

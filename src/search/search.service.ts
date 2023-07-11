@@ -10,7 +10,7 @@ export class SearchService {
     const results = await this.prisma.$transaction([
       this.prisma.song.findMany({
         include: {
-          artists: true
+          artist: true
         },
         where: {
           OR: [
@@ -61,7 +61,7 @@ export class SearchService {
     const catalog = await this.prisma.$transaction([
       this.prisma.song.findMany({
         take: 25,
-        include: { artists: true }
+        include: { artist: true }
       }),
       this.prisma.artist.findMany({ take: 25 }),
       this.prisma.playlist.findMany({ take: 25, include: { User: true } }),

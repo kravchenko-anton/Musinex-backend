@@ -13,7 +13,7 @@ export class AlbumService {
       }, include: {
         songs: {
           include: {
-            artists: true
+            artist: true
           }
         },
         genre: true,

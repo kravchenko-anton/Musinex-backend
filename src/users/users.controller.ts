@@ -16,15 +16,12 @@ export class UsersController {
   async getProfile(@CurrentUser("id") id: number) {
     return this.usersService.getById(id, {
       email: true,
-      userPlaylists: true,
       favoritePlayLists: true,
       favoritesAlbum: true,
       favoritesArtist: true,
       favoritesSong: {
         include: {
-          artists: {
-            take: 1
-          }
+          artist: true
         }
       }
     });

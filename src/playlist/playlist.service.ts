@@ -13,7 +13,7 @@ export class PlaylistService {
       }, include: {
         songs: {
           include: {
-            artists: true
+            artist: true
           }
         },
         genres: true,

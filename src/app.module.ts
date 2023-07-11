@@ -8,15 +8,17 @@ import { AppService } from "./app.service";
 import { ArtistModule } from "./artist/artist.module";
 import { AuthModule } from "./auth/auth.module";
 import { GenreModule } from "./genre/genre.module";
+import { HistoryModule } from "./history/history.module";
 import { PlaylistModule } from "./playlist/playlist.module";
 import { PrismaService } from "./prisma.service";
+import { RecommendationModule } from "./recommendation/recommendation.module";
 import { SearchModule } from "./search/search.module";
 import { UsersModule } from "./users/users.module";
 
 @Module({
   imports: [ConfigModule.forRoot(), ServeStaticModule.forRoot({
     rootPath: join(__dirname, "..", "public")
-  }), UsersModule, AuthModule, PlaylistModule, AlbumModule, ArtistModule, GenreModule, SearchModule],
+  }), UsersModule, AuthModule, PlaylistModule, AlbumModule, ArtistModule, GenreModule, SearchModule, RecommendationModule, HistoryModule],
   controllers: [AppController],
   providers: [AppService, PrismaService]
 })

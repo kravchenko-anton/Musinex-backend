@@ -12,7 +12,7 @@ export class GenreService {
         songs: {
           take: 1,
           include: {
-            artists: true
+            artist: true
           }
         }
       },
@@ -37,7 +37,7 @@ export class GenreService {
         },
         songs: {
           include: {
-            artists: true
+            artist: true
           }
         },
         playlists: {
