@@ -70,7 +70,7 @@ const seedAlreadyAddedAlbum = async () => {
     }
     for (let i = 0; i < FetchSongs.data.length; i++) {
       const song = FetchSongs.data[i];
-      const searchSong = await mp3Parse(song.title, browser, page).catch(e => {
+      const searchSong = await mp3Parse(song.title, song.duration, browser, page).catch(e => {
         console.log(colors.bgRed.white.bold("Error in mp3Parse" + song.title));
       });
       if (!searchSong) {

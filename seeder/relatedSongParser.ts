@@ -46,7 +46,7 @@ const parseAllRelatedSongs = async () => {
     const lim = RateLimit(5);
     const song = songs[i];
     if (song.relatedSongs.length > 0) {
-      console.log(colors.bgYellow.bold("Already parsed" + song.title));
+      console.log(colors.bgYellow.bold("Already parsed " + song.title));
       continue;
     }
     const relatedSongs = await relatedSongParser(song.title);
@@ -74,7 +74,9 @@ const parseAllRelatedSongs = async () => {
       const album = await fetch(
         "https://api.deezer.com/album/" + dreezieSong.album.id
       ).then(res => res.json());
-      const searchSong = await mp3Parse(relatedSong.title, browser, page).catch(e => {
+      const searchSong = await mp3Parse(relatedSong.title,
+        dreezieSong.duration
+        , browser, page).catch(e => {
         console.log(colors.bgRed("Error in mp3Parse " + relatedSong.title));
       });
       if (!searchSong) {
@@ -245,6 +247,4 @@ const parseAllRelatedSongs = async () => {
 
 parseAllRelatedSongs().then(() => {
   console.log("done");
-}).catch(e => {
-  console.log(colors.bgRed(e));
 });

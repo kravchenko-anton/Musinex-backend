@@ -31,7 +31,7 @@ const createSongsFromPopular = async (startIndex: number = 0) => {
       const album = await fetch(
         "https://api.deezer.com/album/" + deezer.album.id
       ).then(res => res.json());
-      const searchSong = await mp3Parse(deezer.title, browser, page).catch(e => {
+      const searchSong = await mp3Parse(deezer.title, deezer.duration, browser, page).catch(e => {
         console.log(colors.bgRed.white.bold("Error in mp3Parse" + deezer.title + " " + e));
       });
       if (!searchSong) {

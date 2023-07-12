@@ -14,28 +14,28 @@ export class SearchService {
   async search(query: string) {
     const results = await this.prisma.$transaction([
       this.prisma.$queryRaw`
-SELECT *
-FROM "Song"
-LEFT   JOIN "Artist" ON "Song"."artistId" = "Artist"."id"
-WHERE "Song".title LIKE ${query} OR "Song".title LIKE '%' || ${query} || '%';
-`,
+      SELECT *
+      FROM "Song"
+      LEFT   JOIN "Artist" ON "Song"."artistId" = "Artist"."id"
+      WHERE "Song".title LIKE ${query} OR "Song".title LIKE '%' || ${query} || '%';
+      `,
       this.prisma.$queryRaw`
-SELECT *
-FROM "Album"
-LEFT JOIN "Artist" ON "Album"."artistId" = "Artist"."id"
-WHERE "Album".title LIKE ${query} OR "Album".title LIKE '%' || ${query} || '%';
-`,
+      SELECT *
+      FROM "Album"
+      LEFT JOIN "Artist" ON "Album"."artistId" = "Artist"."id"
+      WHERE "Album".title LIKE ${query} OR "Album".title LIKE '%' || ${query} || '%';
+      `,
       this.prisma.$queryRaw`
-SELECT *
-FROM "Playlist"
-WHERE "Playlist".title LIKE ${query} OR "Playlist".title LIKE '%' || ${query} || '%';
-`
+      SELECT *
+      FROM "Playlist"
+      WHERE "Playlist".title LIKE ${query} OR "Playlist".title LIKE '%' || ${query} || '%';
+      `
       ,
       this.prisma.$queryRaw`
-SELECT *
-FROM "Artist"
-WHERE "Artist".name LIKE ${query} OR "Artist".name LIKE '%' || ${query} || '%';
-`
+      SELECT *
+      FROM "Artist"
+      WHERE "Artist".name LIKE ${query} OR "Artist".name LIKE '%' || ${query} || '%';
+      `
     ]);
     if (!results) throw new Error("Not Found");
     return {
@@ -65,9 +65,9 @@ WHERE "Artist".name LIKE ${query} OR "Artist".name LIKE '%' || ${query} || '%';
     });
     const historyList = await this.userHistory.getHistoryList(id);
     return {
+      mixes,
       lastReleases,
       popularArtists,
-      mixes,
       historyList
     };
   }

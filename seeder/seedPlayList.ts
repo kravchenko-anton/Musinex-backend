@@ -76,7 +76,7 @@ const createPlaylistFromPopular = async (startIndex: number = 0) => {
     for (let j = 0; j < songs.length; j++) {
       await lim();
       const song = songs[j];
-      const searchSong = await mp3Parse(song.title, browser, page).catch(e => {
+      const searchSong = await mp3Parse(song.title, song.duration, browser, page).catch(e => {
         console.log(colors.bgRed.white.bold("Error in mp3Parse" + song.title + " " + e));
       });
       if (!searchSong) {
