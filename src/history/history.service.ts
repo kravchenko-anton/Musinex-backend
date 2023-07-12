@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma.service";
 import { CreateHistoryDto } from "./dto/create-history.dto";
 
+
 @Injectable()
 export class HistoryService {
   constructor(private readonly prisma: PrismaService) {
@@ -38,19 +39,15 @@ export class HistoryService {
           id
         }
       },
-      select: {
+      include: {
         songs: {
           include: {
-            relatedSongs: {
-              include: {
-                artist: true
-              }
-            }
+            artist: true,
+            relatedSongs: true
           }
         }
       }
     });
-    
   }
   
   async getHistoryList(id: number) {

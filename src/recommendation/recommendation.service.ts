@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { HistoryService } from "../history/history.service";
 import { PrismaService } from "../prisma.service";
 
+
 @Injectable()
 export class RecommendationService {
   constructor(private readonly prisma: PrismaService, private readonly userHistory: HistoryService) {

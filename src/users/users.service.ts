@@ -12,7 +12,6 @@ export class UsersService {
   }
   
   async getById(id: number, selectObject: Prisma.UserSelect = {}) {
-    // if !selectObject.id, returnUserObject will be used
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {

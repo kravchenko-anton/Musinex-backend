@@ -23,7 +23,7 @@ export const relatedSongParser = async (name: string): Promise<{ title: string, 
       const title = q.querySelector(".track-list-item-info-text > div > a").textContent;
       const author = q.querySelector(".track-list-item-info-genres > p").textContent;
       return { title, author };
-    }).slice(0, 6);
+    });
   });
 };
 // prisma loop for get all songs
@@ -53,6 +53,7 @@ const parseAllRelatedSongs = async () => {
     for (let j = 0; j < relatedSongs.length; j++) {
       await lim();
       const relatedSong = relatedSongs[j];
+      
       const deezerSearch = await fetch(
         "https://api.deezer.com/search?q=" + relatedSong.title
       ).then(res => res.json());
@@ -128,11 +129,14 @@ const parseAllRelatedSongs = async () => {
           relatedSongs: true
         }
       });
+      
       if (relatedSong.title == song.title) {
         await browser.newPage();
         console.log(colors.bgYellow(`Song ${dreezieSong.title} it self`));
         continue;
       }
+      
+      
       if (oldSong) {
         await browser.newPage();
         await prisma.song.update({
@@ -247,4 +251,5 @@ const parseAllRelatedSongs = async () => {
 
 parseAllRelatedSongs().then(() => {
   console.log("done");
+  process.exit(0);
 });

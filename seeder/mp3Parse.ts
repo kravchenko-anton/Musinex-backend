@@ -40,7 +40,7 @@ export const mp3Parse = async (name: string, duration: number, browser: Browser,
   const buffer2 = Buffer.from(buffer);
   fs.mkdirSync("./dist/public/mp3", { recursive: true });
   fs.writeFileSync(`./dist/public/mp3/${name}.mp3`, buffer2);
-  return `mp3/${name}.mp3`;
+  return `/mp3/${name}.mp3`;
 };
 
 
