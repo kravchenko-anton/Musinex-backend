@@ -1,16 +1,33 @@
 import { Injectable } from "@nestjs/common";
-import { HistoryService } from "../history/history.service";
 import { PrismaService } from "../prisma.service";
+import { returnSongObject } from "../utils/return-song.object";
 
 
 @Injectable()
 export class RecommendationService {
-  constructor(private readonly prisma: PrismaService, private readonly userHistory: HistoryService) {
+  constructor(private readonly prisma: PrismaService) {
   }
   
   async getRecommendation(id: number) {
-    const otherSongs = await this.prisma.song.findMany({});
-    const history = await this.userHistory.getHistory(id);
+    const otherSongs = await this.prisma.song.findMany({
+      take: 60
+    });
+    const history = await this.prisma.history.findMany({
+      where: {
+        user: {
+          id
+        }
+      },
+      include: {
+        songs: {
+          include: {
+            relatedSongs: {
+              select: returnSongObject
+            }
+          }
+        }
+      }
+    });
     const recommendations = [];
     for (const historyItem of history) {
       historyItem.songs.forEach((song) => {
@@ -32,19 +49,13 @@ export class RecommendationService {
   
   async getMix(id: number) {
     const recommendation = await this.getRecommendation(id);
-    const mix1 = recommendation.slice(0, 10);
-    const mix2 = recommendation.slice(10, 20);
-    const mix3 = recommendation.slice(20, 30);
-    const mix4 = recommendation.slice(30, 40);
-    const mix5 = recommendation.slice(40, 50);
-    const mix6 = recommendation.slice(50, 60);
     return {
-      mix1,
-      mix2,
-      mix3,
-      mix4,
-      mix5,
-      mix6
+      mix1: recommendation.slice(0, 10),
+      mix2: recommendation.slice(10, 20),
+      mix3: recommendation.slice(20, 30),
+      mix4: recommendation.slice(30, 40),
+      mix5: recommendation.slice(40, 50),
+      mix6: recommendation.slice(50, 60)
     };
   }
   

@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma.service";
+import { returnSongObject } from "../utils/return-song.object";
 
 @Injectable()
 export class GenreService {
@@ -11,9 +12,7 @@ export class GenreService {
       include: {
         songs: {
           take: 1,
-          include: {
-            artist: true
-          }
+          select: returnSongObject
         }
       },
       orderBy: {
@@ -28,7 +27,7 @@ export class GenreService {
       include: {
         albums: {
           where: {
-            genre: {
+            genres: {
               some: {
                 id: +id
               }
@@ -36,9 +35,7 @@ export class GenreService {
           }
         },
         songs: {
-          include: {
-            artist: true
-          }
+          select: returnSongObject
         },
         playlists: {
           include: {

@@ -15,7 +15,7 @@ const seedAlreadyAddedAlbum = async () => {
     include: {
       artist: true,
       songs: true,
-      genre: true
+      genres: true
     }
   });
   for (let i = 0; i < albums.length; i++) {
@@ -96,7 +96,7 @@ const seedAlreadyAddedAlbum = async () => {
           id: album.id
         },
         data: {
-          genre: {
+          genres: {
             connectOrCreate: {
               where: {
                 name: prismaGenres

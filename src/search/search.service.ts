@@ -16,7 +16,7 @@ export class SearchService {
       this.prisma.$queryRaw`
       SELECT *
       FROM "Song"
-      LEFT   JOIN "Artist" ON "Song"."artistId" = "Artist"."id"
+    FULL INSERT "Artist" ON "Song"."artistId" = "Artist"."id"
       WHERE "Song".title LIKE ${query} OR "Song".title LIKE '%' || ${query} || '%';
       `,
       this.prisma.$queryRaw`

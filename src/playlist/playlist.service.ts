@@ -1,5 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma.service";
+import { returnSongObject } from "../utils/return-song.object";
+import { returnPlaylistObject } from "./return-playlist.object";
 
 @Injectable()
 export class PlaylistService {
@@ -10,14 +12,12 @@ export class PlaylistService {
     const playlist = this.prisma.playlist.findUnique({
       where: {
         id: +id
-      }, include: {
+      }, select: {
+        ...returnPlaylistObject,
         songs: {
-          include: {
-            artist: true
-          }
+          select: returnSongObject
         },
-        genres: true,
-        User: true
+        genres: true
       }
     });
     

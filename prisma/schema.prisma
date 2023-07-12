@@ -31,7 +31,7 @@ model Playlist {
   fans        Int
   releaseDate DateTime @map("release_date")
   userId      Int?     @map("user_id")
-  User        User?    @relation("userFavoritePlaylists", fields: [userId], references: [id])
+  user        User?    @relation("userFavoritePlaylists", fields: [userId], references: [id])
   genres      Genre[]  @relation("GenreToPlaylist")
   songs       Song[]   @relation("PlaylistToSong")
 }
@@ -47,15 +47,15 @@ model Song {
   duration      Int
   releaseDate   DateTime   @map("release_date")
   mp3Path       String     @map("mp3_path")
-  RelatedSongId Int?
+  relatedSongId Int?
   artistId      Int
-  RelatedSong   Song?      @relation("TeacherStudents", fields: [RelatedSongId], references: [id])
+  relatedSong   Song?      @relation("TeacherStudents", fields: [relatedSongId], references: [id])
   relatedSongs  Song[]     @relation("TeacherStudents")
   artist        Artist     @relation(fields: [artistId], references: [id])
   albums        Album[]    @relation("AlbumToSong")
   users         User[]     @relation("FavoriteSongs")
   genres        Genre[]    @relation("GenreToSong")
-  History       History[]  @relation("HistoryToSong")
+  histories     History[]  @relation("HistoryToSong")
   playlists     Playlist[] @relation("PlaylistToSong")
 }
 
@@ -73,7 +73,7 @@ model Album {
   artistId    Int
   artist      Artist   @relation(fields: [artistId], references: [id])
   User        User?    @relation(fields: [userId], references: [id])
-  genre       Genre[]  @relation("AlbumToGenre")
+  genres      Genre[]  @relation("AlbumToGenre")
   songs       Song[]   @relation("AlbumToSong")
 }
 
@@ -87,9 +87,9 @@ model Artist {
   pictureMedium String   @map("picture_medium")
   pictureSmall  String   @map("picture_small")
   userId        Int?     @map("user_id")
-  Album         Album[]
-  User          User?    @relation(fields: [userId], references: [id])
-  Song          Song[]
+  albums        Album[]
+  user          User?    @relation(fields: [userId], references: [id])
+  songs         Song[]
 }
 
 model Genre {
@@ -108,7 +108,7 @@ model History {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  userId    Int?
-  User      User?    @relation(fields: [userId], references: [id])
+  userId    Int?     @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id])
   songs     Song[]   @relation("HistoryToSong")
 }

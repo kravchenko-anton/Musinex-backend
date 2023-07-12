@@ -1,7 +1,11 @@
 import { Body, Controller, Get, HttpCode, Param, Patch, Post, UsePipes, ValidationPipe } from "@nestjs/common";
+import { returnAlbumObject } from "../album/return-album.object";
+import { returnArtistObject } from "../artist/return-artist.object";
 import { Auth } from "../auth/decorator/auth.decorator";
 import { CurrentUser } from "../auth/decorator/user.decorator";
+import { returnPlaylistObject } from "../playlist/return-playlist.object";
 import { varieties } from "../types/varieties";
+import { returnSongObject } from "../utils/return-song.object";
 import { UserUpdateDto } from "./dto/user.update.dto";
 import { UsersService } from "./users.service";
 
@@ -16,13 +20,17 @@ export class UsersController {
   async getProfile(@CurrentUser("id") id: number) {
     return this.usersService.getById(id, {
       email: true,
-      favoritePlayLists: true,
-      favoritesAlbum: true,
-      favoritesArtist: true,
+      favoritePlayLists: {
+        select: returnPlaylistObject
+      },
+      favoritesAlbum: {
+        select: returnAlbumObject
+      },
+      favoritesArtist: {
+        select: returnArtistObject
+      },
       favoritesSong: {
-        include: {
-          artist: true
-        }
+        select: returnSongObject
       }
     });
   }

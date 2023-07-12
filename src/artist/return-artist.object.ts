@@ -1,6 +1,8 @@
-export const returnHistoryObject = {
+import { defaultReturnObject } from "../utils/return-object";
+
+export const returnArtistObject = {
+  ...defaultReturnObject,
   name: true,
-  id: true,
   followers: true,
   pictureBig: true,
   pictureMedium: true,
