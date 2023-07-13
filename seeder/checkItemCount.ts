@@ -8,7 +8,7 @@ export const SearchEqual = async (type: searchType, maxCount: number) => {
         .then(res => res.json())
         .then(res => {
           if (res.total > 70) {
-            console.log(colors.bgGreen(`Playlist ${i} | ${res.total}`));
+            console.log(colors.bgGreen(`${type} ${i} | ${res.total}`));
             playlistCount.push({
               i: res.total
             });

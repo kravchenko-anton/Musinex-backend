@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { ServeStaticModule } from "@nestjs/serve-static";
+import { ThrottlerModule } from "@nestjs/throttler";
 import { join } from "path";
 import { AlbumModule } from "./album/album.module";
 import { AppController } from "./app.controller";
@@ -16,9 +17,14 @@ import { SearchModule } from "./search/search.module";
 import { UsersModule } from "./users/users.module";
 
 @Module({
-  imports: [ConfigModule.forRoot(), ServeStaticModule.forRoot({
-    rootPath: join(__dirname, "..", "public")
-  }), UsersModule, AuthModule, PlaylistModule, AlbumModule, ArtistModule, GenreModule, SearchModule, RecommendationModule, HistoryModule],
+  imports: [ConfigModule.forRoot(),
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 10
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, "..", "public")
+    }), UsersModule, AuthModule, PlaylistModule, AlbumModule, ArtistModule, GenreModule, SearchModule, RecommendationModule, HistoryModule],
   controllers: [AppController],
   providers: [AppService, PrismaService]
 })

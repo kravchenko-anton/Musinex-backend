@@ -168,7 +168,7 @@ const createSongsFromPopular = async (startIndex: number = 0) => {
 };
 const main = async () => {
   console.log(colors.bgCyan("Start seeding..."));
-  await createSongsFromPopular();
+  await createSongsFromPopular(2);
 };
 main()
   .catch(e => {

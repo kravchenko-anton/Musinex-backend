@@ -1,5 +1,7 @@
 import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
+import * as csurf from "csurf";
+import helmet from "helmet";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
@@ -8,6 +10,9 @@ async function bootstrap() {
     credentials: true,
     origin: true
   });
+  await app.use(csurf());
+  await app.use(helmet());
+  await app.setGlobalPrefix("api");
   await app.listen(7777);
 }
 
