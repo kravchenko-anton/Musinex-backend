@@ -6,7 +6,7 @@ const colors = require("colors");
 const puppeteer = require("puppeteer");
 const prisma = new PrismaClient();
 export const relatedSongParser = async (name: string): Promise<{ title: string, author: string }[]> => {
-  const browser = await puppeteer.launch({ headless: false, ignoreHTTPSErrors: true });
+  const browser = await puppeteer.launch({ headless: "new", ignoreHTTPSErrors: true });
   const page = await browser.newPage();
   await page.goto(`https://www.chosic.com/playlist-generator/`);
   await page.waitForSelector(".css-47sehv");
@@ -30,7 +30,7 @@ export const relatedSongParser = async (name: string): Promise<{ title: string, 
 
 const parseAllRelatedSongs = async () => {
   const browser = await puppeteer.launch({
-    headless: "new"
+    headless: false
   });
   const page = await browser.newPage();
   const songs = await prisma.song.findMany({
@@ -50,10 +50,15 @@ const parseAllRelatedSongs = async () => {
       continue;
     }
     const relatedSongs = await relatedSongParser(song.title);
+    let relatedSongsLength = 0;
     for (let j = 0; j < relatedSongs.length; j++) {
       await lim();
+      const pages = await browser.pages();
+      if (pages.length >= 3) {
+        pages.map(async (p, i) => p.url() === "about:blank" && await p.close());
+        console.log(colors.bgRed.white.bold("Closed page"));
+      }
       const relatedSong = relatedSongs[j];
-      
       const deezerSearch = await fetch(
         "https://api.deezer.com/search?q=" + relatedSong.title
       ).then(res => res.json());
@@ -77,9 +82,7 @@ const parseAllRelatedSongs = async () => {
       ).then(res => res.json());
       const searchSong = await mp3Parse(relatedSong.title,
         dreezieSong.duration
-        , browser, page).catch(e => {
-        console.log(colors.bgRed("Error in mp3Parse " + relatedSong.title));
-      });
+        , browser, page);
       if (!searchSong) {
         await browser.newPage();
         console.log(colors.bgRed("Not found in mp3 " + relatedSong.title));
@@ -138,6 +141,7 @@ const parseAllRelatedSongs = async () => {
       
       
       if (oldSong) {
+        relatedSongsLength++;
         await browser.newPage();
         await prisma.song.update({
           where: {
@@ -153,6 +157,11 @@ const parseAllRelatedSongs = async () => {
         });
         console.log(colors.bgBlue(`Song ${dreezieSong.title}  connected`));
         continue;
+      }
+      
+      if (relatedSongsLength >= 5) {
+        console.log(colors.bgRed("Song " + song.title + " has more than 5 related songs"));
+        break;
       }
       await prisma.song.create({
         include: {
@@ -241,6 +250,7 @@ const parseAllRelatedSongs = async () => {
           }
         }
       });
+      relatedSongsLength++;
       await browser.newPage();
       console.log(
         colors.bgGreen(`Song ${j} | ${dreezieSong.title} successfully added`)
