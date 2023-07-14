@@ -77,11 +77,11 @@ const createPlaylistFromPopular = async (startIndex: number = 0) => {
       await lim();
       const song = songs[j];
       const searchSong = await mp3Parse(song.title, song.duration, browser, page).catch(e => {
-        console.log(colors.bgRed.white.bold("Error in mp3Parse" + song.title + " " + e));
+        console.log(colors.bgRed.white.bold("Error in mp3Parse " + song.title + " " + e));
       });
       if (!searchSong) {
         await browser.newPage();
-        console.log(colors.bgRed.white.bold("Not found in mp3Parse" + song.title));
+        console.log(colors.bgRed.white.bold("Not found in mp3Parse " + song.title));
         continue;
       }
       if (

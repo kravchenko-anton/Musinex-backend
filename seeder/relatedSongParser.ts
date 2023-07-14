@@ -56,7 +56,6 @@ const parseAllRelatedSongs = async () => {
       const pages = await browser.pages();
       if (pages.length >= 3) {
         pages.map(async (p, i) => p.url() === "about:blank" && await p.close());
-        console.log(colors.bgRed.white.bold("Closed page"));
       }
       const relatedSong = relatedSongs[j];
       const deezerSearch = await fetch(
