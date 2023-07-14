@@ -1,25 +1,26 @@
 import { PrismaClient } from "@prisma/client";
+import { getAllSongs } from "./getAllDreezerSongs";
 import { mp3Parse } from "./mp3Parse";
 
 const { RateLimit } = require("async-sema");
 const puppeteer = require("puppeteer");
 const colors = require("colors");
 
+
 const prisma = new PrismaClient();
 
-const createSongsFromPopular = async (startIndex: number = 0) => {
-  const lim = RateLimit(5);
+const createSongsFromPopular = async () => {
+  const lim = RateLimit(2);
   const browser = await puppeteer.launch({
     headless: "new"
   });
   const page = await browser.newPage();
   try {
-    const search = await fetch(
-      "https://api.deezer.com/chart/" + startIndex + "/tracks?limit=1000"
-    ).then(res => res.json());
-    for (let j = 0; j < search.data.length; j++) {
+    const search = await getAllSongs("tracks", 50);
+    console.log(search.length);
+    for (let j = 0; j < search.length; j++) {
       await lim();
-      const deezer = search.data[j];
+      const deezer = search[j];
       const track = await fetch(
         "https://api.deezer.com/track/" + deezer.id
       ).then(res => res.json());
@@ -167,8 +168,7 @@ const createSongsFromPopular = async (startIndex: number = 0) => {
   }
 };
 const main = async () => {
-  console.log(colors.bgCyan("Start seeding..."));
-  await createSongsFromPopular(2);
+  await createSongsFromPopular();
 };
 main()
   .catch(e => {
