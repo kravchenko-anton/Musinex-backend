@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma.service";
+import { PrismaService } from "../utils/prisma.service";
 import { returnSongObject } from "../utils/return-song.object";
 
 
@@ -10,7 +10,12 @@ export class RecommendationService {
   
   async getRecommendation(id: number) {
     const otherSongs = await this.prisma.song.findMany({
-      take: 60
+      take: 60,
+      orderBy: {
+        artist: {
+          followers: "desc"
+        }
+      }
     });
     const history = await this.prisma.history.findMany({
       where: {

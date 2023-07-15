@@ -1,4 +1,4 @@
-import { returnArtistObject } from "../artist/return-artist.object";
+import { returnArtistObject } from "../artist/utils/return-artist.object";
 import { defaultReturnObject } from "./return-object";
 
 export const returnSongObject = {

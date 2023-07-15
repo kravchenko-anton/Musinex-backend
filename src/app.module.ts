@@ -11,10 +11,10 @@ import { AuthModule } from "./auth/auth.module";
 import { GenreModule } from "./genre/genre.module";
 import { HistoryModule } from "./history/history.module";
 import { PlaylistModule } from "./playlist/playlist.module";
-import { PrismaService } from "./prisma.service";
 import { RecommendationModule } from "./recommendation/recommendation.module";
 import { SearchModule } from "./search/search.module";
 import { UsersModule } from "./users/users.module";
+import { PrismaService } from "./utils/prisma.service";
 
 @Module({
   imports: [ConfigModule.forRoot(),

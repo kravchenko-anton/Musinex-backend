@@ -43,7 +43,6 @@ const parseAllRelatedSongs = async () => {
     }
   });
   for (let i = 0; i < songs.length; i++) {
-    const lim = RateLimit(5);
     const song = songs[i];
     if (song.relatedSongs.length > 0) {
       console.log(colors.bgYellow.bold("Already parsed " + song.title));
@@ -52,10 +51,9 @@ const parseAllRelatedSongs = async () => {
     const relatedSongs = await relatedSongParser(song.title);
     let relatedSongsLength = 0;
     for (let j = 0; j < relatedSongs.length; j++) {
-      await lim();
       const pages = await browser.pages();
       if (pages.length >= 3) {
-        pages.map(async (p, i) => p.url() === "about:blank" && await p.close());
+        pages.map(async (p) => p.url() === "about:blank" && await p.close());
       }
       const relatedSong = relatedSongs[j];
       const deezerSearch = await fetch(

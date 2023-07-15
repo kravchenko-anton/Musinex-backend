@@ -17,7 +17,6 @@ const createSongsFromPopular = async () => {
   const page = await browser.newPage();
   try {
     const search = await getAllSongs("tracks", 50);
-    console.log(search.length);
     for (let j = 0; j < search.length; j++) {
       await lim();
       const deezer = search[j];

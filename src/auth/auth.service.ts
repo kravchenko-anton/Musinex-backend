@@ -2,8 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { JwtService } from "@nestjs/jwt";
 import { User } from "@prisma/client";
 import { hash, verify } from "argon2";
-import { PrismaService } from "../prisma.service";
 import { UsersService } from "../users/users.service";
+import { PrismaService } from "../utils/prisma.service";
 import { AuthDto } from "./dto/auth.dto";
 
 @Injectable()

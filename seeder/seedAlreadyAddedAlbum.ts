@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { mp3Parse } from "./mp3Parse";
 
-const { RateLimit } = require("async-sema");
 const puppeteer = require("puppeteer");
 const prisma = new PrismaClient();
 const colors = require("colors");
@@ -20,6 +19,10 @@ const seedAlreadyAddedAlbum = async () => {
   });
   for (let i = 0; i < albums.length; i++) {
     const album = albums[i];
+    if (album.songs.length > 2) {
+      console.log(colors.bgYellow.bold("Already parsed " + album.title));
+      continue;
+    }
     const FetchSearchAlbum = await fetch(
       `https://api.deezer.com/search/album?q=${album.title}`
     )

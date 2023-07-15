@@ -1,4 +1,4 @@
-import { defaultReturnObject } from "../utils/return-object";
+import { defaultReturnObject } from "../../utils/return-object";
 
 export const returnUserObject = {
   ...defaultReturnObject,

@@ -10,7 +10,7 @@ const puppeteer = require("puppeteer");
 
 
 const createPlaylistFromPopular = async (startIndex: number = 0) => {
-  const lim = RateLimit(5);
+  const lim = RateLimit(1);
   const browser = await puppeteer.launch({
     headless: "new"
   });

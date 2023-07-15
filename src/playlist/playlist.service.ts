@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma.service";
+import { PrismaService } from "../utils/prisma.service";
 import { returnSongObject } from "../utils/return-song.object";
-import { returnPlaylistObject } from "./return-playlist.object";
+import { returnPlaylistObject } from "./utils/return-playlist.object";
 
 @Injectable()
 export class PlaylistService {

@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { hash } from "argon2";
-import { PrismaService } from "../prisma.service";
 import { varieties } from "../types/varieties";
+import { PrismaService } from "../utils/prisma.service";
 import { UserUpdateDto } from "./dto/user.update.dto";
-import { returnUserObject } from "./return-user.object";
+import { returnUserObject } from "./utils/return-user.object";
 
 @Injectable()
 export class UsersService {

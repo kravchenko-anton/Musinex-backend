@@ -32,7 +32,6 @@ export const mp3Parse = async (name: string, duration: number, browser: Browser,
   });
   if (!searchSong) {
     await browser.newPage();
-    console.log(colors.bgMagenta.white.bold("Not found in searchSong " + name + " | " + duration));
     return null;
   }
   const song = await fetch(`https://music.я.ws/${searchSong.song}`).then((res) => res.blob());
