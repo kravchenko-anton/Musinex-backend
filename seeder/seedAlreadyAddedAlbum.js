@@ -129,7 +129,7 @@ var seedAlreadyAddedAlbum = function () { return __awaiter(void 0, void 0, void 
                                                                     },
                                                                     create: {
                                                                         name: prismaGenres,
-                                                                        icon: "../assets/genre.png",
+                                                                        icon: "genre.png",
                                                                         color: "#101010"
                                                                     }
                                                                 }

@@ -50,29 +50,5 @@ export class HistoryService {
     });
   }
   
-  async getHistoryList(id: number) {
-    const history = await this.prisma.history.findMany({
-      where: {
-        user: {
-          id
-        }
-      },
-      take: 10,
-      select: {
-        userId: false,
-        songs: {
-          select: returnSongObject
-        }
-      }
-    });
-    const list = [];
-    for (const item of history) {
-      item.songs.forEach((song) => {
-        if (list.find((element) => element.title == song.title)) return;
-        return list.push(song);
-      });
-    }
-    return list;
-  }
-  
+
 }

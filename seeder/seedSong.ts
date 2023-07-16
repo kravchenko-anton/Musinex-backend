@@ -103,7 +103,7 @@ const createSongsFromPopular = async () => {
               create: {
                 name: album.genres.data[0].name,
                 color: "#101010",
-                icon: "../assets/genre.png"
+                icon: "genre.png"
               }
             }
           },

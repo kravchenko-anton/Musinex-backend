@@ -1,6 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import { returnAlbumObject } from "../album/utils/return-album.object";
+import { returnArtistObject } from "../artist/utils/return-artist.object";
 import { HistoryService } from "../history/history.service";
+import { returnPlaylistObject } from "../playlist/utils/return-playlist.object";
 import { RecommendationService } from "../recommendation/recommendation.service";
 import { PrismaService } from "../utils/prisma.service";
 
@@ -214,7 +217,8 @@ SELECT
       orderBy: {
         followers: "desc"
       },
-      take: 10
+      take: 10,
+      select: returnArtistObject
     });
     const mixes = await this.recommendation.getMix(id);
     const lastReleases = await this.prisma.song.findMany({
@@ -223,15 +227,31 @@ SELECT
       },
       take: 10,
       include: {
-        artist: true
+        artist: {
+          select: returnArtistObject
+        }
       }
     });
-    const historyList = await this.userHistory.getHistoryList(id);
+    const popularAlbums = await this.prisma.album.findMany({
+      orderBy: {
+        fans: "desc"
+      },
+      take: 10,
+      select: returnAlbumObject
+    });
+    const popularPlaylists = await this.prisma.playlist.findMany({
+      orderBy: {
+        fans: "desc"
+      },
+      take: 10,
+      select: returnPlaylistObject
+    });
     return {
       mixes,
       lastReleases,
       popularArtists,
-      historyList
+      popularAlbums,
+      popularPlaylists,
     };
   }
 }

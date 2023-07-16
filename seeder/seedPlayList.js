@@ -204,7 +204,7 @@ var createPlaylistFromPopular = function (startIndex) {
                                                                         },
                                                                         create: {
                                                                             name: album.genres.data[0].name,
-                                                                            icon: "../assets/genres/genre.icon",
+                                                                            icon: "genre.png",
                                                                             color: "#000000"
                                                                         }
                                                                     }

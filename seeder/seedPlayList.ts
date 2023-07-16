@@ -184,7 +184,7 @@ const createPlaylistFromPopular = async (startIndex: number = 0) => {
               },
               create: {
                 name: prismaGenres,
-                icon: "../assets/genre.png",
+                icon: "genre.png",
                 color: "#101010"
               }
             }
@@ -238,7 +238,7 @@ const createPlaylistFromPopular = async (startIndex: number = 0) => {
                     },
                     create: {
                       name: album.genres.data[0].name,
-                      icon: "../assets/genres/genre.icon",
+                      icon: "genre.png",
                       color: "#000000"
                     }
                   }
